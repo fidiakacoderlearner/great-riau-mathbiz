@@ -239,113 +239,117 @@ function BertemuPembeli() {
   // ── Setup ─────────────────────────────────────
   if (step === 'setup') {
     return (
-      <div className="min-h-screen px-4 py-4" style={{ backgroundColor: '#FDFBE4' }}>
-        <div className="flex items-center justify-between mb-4">
+      <div className="min-h-screen md:h-screen md:overflow-hidden flex flex-col"
+        style={{ backgroundColor: '#FDFBE4' }}>
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 md:px-8 py-3 border-b-2 mb-4"
+          style={{ borderColor: '#ddd' }}>
           <XPBar />
+          <span className="px-3 py-1 rounded-full text-xs font-bold text-white"
+            style={{ backgroundColor: '#C0392B' }}>🛒 Bertemu Pembeli</span>
+          <div />
         </div>
 
-        <div className="text-center mb-4">
-          <span className="px-4 py-1 rounded-full text-sm font-bold text-white"
-            style={{ backgroundColor: '#C0392B' }}>
-            🛒 Bertemu Pembeli
-          </span>
-        </div>
-
-        <p className="font-black text-center text-lg mb-1" style={{ color: '#333' }}>
-          Yuk, berjualan!
+        <p className="font-black text-center text-lg mb-1 px-4" style={{ color: '#333' }}>
+          Yuk, berjualan! — MISI: Tebak Pendapatan Maksimum
         </p>
-        <p className="text-center text-sm font-semibold text-gray-400 mb-4">
-          MISI: Tebak Keuntungan Maksimum
-        </p>
-        <p className="text-center text-sm font-semibold text-gray-500 mb-4 px-2">
+        <p className="text-center text-sm font-semibold text-gray-400 mb-4 px-4">
           Atur jumlah batch produksimu. Ingat keterbatasan waktu dan modal!
         </p>
 
-        <div className="max-w-sm mx-auto">
-          {/* Stepper Kemojo */}
-          <div className="bg-white rounded-3xl p-5 shadow mb-3"
-            style={{ border: '2px solid #ddd' }}>
-            <div className="flex items-center justify-between mb-1">
-              <span className="font-bold">🍰 Batch Bolu Kemojo</span>
-              <span className="text-xs font-semibold text-gray-400">80 mnt/batch</span>
+        {/* Desktop: 2 kolom | Mobile: stack */}
+        <div className="flex-1 flex flex-col md:flex-row gap-4 px-4 md:px-8
+                        max-w-4xl mx-auto w-full">
+
+          {/* Kiri: Steppers */}
+          <div className="flex-1 flex flex-col gap-4">
+            {/* Stepper Kemojo */}
+            <div className="bg-white rounded-3xl p-5 shadow flex-1"
+              style={{ border: '2px solid #ddd' }}>
+              <div className="flex justify-between mb-1">
+                <span className="font-bold">🍰 Batch Bolu Kemojo</span>
+                <span className="text-xs font-semibold text-gray-400">80 mnt/batch</span>
+              </div>
+              <p className="text-xs text-gray-400 mb-4">
+                1 batch = 4 loyang × Rp30.000 = Rp120.000
+              </p>
+              <div className="flex items-center justify-center gap-6">
+                <button onClick={() => setBatchKemojo(prev => Math.max(0, prev - 1))}
+                  className="w-12 h-12 rounded-full font-black text-2xl text-white
+                            active:scale-95 transition-transform"
+                  style={{ backgroundColor: '#C0392B' }}>−</button>
+                <span className="font-black text-4xl w-10 text-center">{batchKemojo}</span>
+                <button onClick={() => setBatchKemojo(prev => prev + 1)}
+                  className="w-12 h-12 rounded-full font-black text-2xl text-white
+                            active:scale-95 transition-transform"
+                  style={{ backgroundColor: '#1E8449' }}>+</button>
+              </div>
             </div>
-            <p className="text-xs text-gray-400 mb-3">
-              1 batch = 4 loyang × Rp30.000 = Rp120.000
-            </p>
-            <div className="flex items-center justify-center gap-6">
-              <button
-                onClick={() => setBatchKemojo(prev => Math.max(0, prev - 1))}
-                className="w-10 h-10 rounded-full font-black text-xl text-white
-                           active:scale-95 transition-transform"
-                style={{ backgroundColor: '#C0392B' }}>
-                −
-              </button>
-              <span className="font-black text-3xl w-8 text-center">{batchKemojo}</span>
-              <button
-                onClick={() => setBatchKemojo(prev => prev + 1)}
-                className="w-10 h-10 rounded-full font-black text-xl text-white
-                           active:scale-95 transition-transform"
-                style={{ backgroundColor: '#1E8449' }}>
-                +
-              </button>
+
+            {/* Stepper Bangkit */}
+            <div className="bg-white rounded-3xl p-5 shadow flex-1"
+              style={{ border: '2px solid #ddd' }}>
+              <div className="flex justify-between mb-1">
+                <span className="font-bold">🍪 Batch Kue Bangkit</span>
+                <span className="text-xs font-semibold text-gray-400">60 mnt/batch</span>
+              </div>
+              <p className="text-xs text-gray-400 mb-4">
+                1 batch = 2 toples × Rp58.000 = Rp116.000
+              </p>
+              <div className="flex items-center justify-center gap-6">
+                <button onClick={() => setBatchBangkit(prev => Math.max(0, prev - 1))}
+                  className="w-12 h-12 rounded-full font-black text-2xl text-white
+                            active:scale-95 transition-transform"
+                  style={{ backgroundColor: '#C0392B' }}>−</button>
+                <span className="font-black text-4xl w-10 text-center">{batchBangkit}</span>
+                <button onClick={() => setBatchBangkit(prev => prev + 1)}
+                  className="w-12 h-12 rounded-full font-black text-2xl text-white
+                            active:scale-95 transition-transform"
+                  style={{ backgroundColor: '#1E8449' }}>+</button>
+              </div>
             </div>
           </div>
 
-          {/* Stepper Bangkit */}
-          <div className="bg-white rounded-3xl p-5 shadow mb-4"
-            style={{ border: '2px solid #ddd' }}>
-            <div className="flex items-center justify-between mb-1">
-              <span className="font-bold">🍪 Batch Kue Bangkit</span>
-              <span className="text-xs font-semibold text-gray-400">60 mnt/batch</span>
+          {/* Kanan: Status + Tombol */}
+          <div className="flex flex-col gap-4 md:w-64">
+            <div className="bg-white rounded-3xl p-5 shadow"
+              style={{ border: `2px solid ${statusOk ? '#1E8449' : '#C0392B'}` }}>
+              <p className="font-black text-center mb-3"
+                style={{ color: statusOk ? '#1E8449' : '#C0392B' }}>
+                {statusOk ? '✅ Status OK' : '❌ Melewati Batas!'}
+              </p>
+              <div className="flex flex-col gap-2 text-sm font-semibold">
+                <div className="flex justify-between p-2 rounded-xl"
+                  style={{ backgroundColor: waktuOk ? '#D5F5E3' : '#FADBD8' }}>
+                  <span>⏱ Waktu</span>
+                  <span style={{ color: waktuOk ? '#1E8449' : '#C0392B' }}>
+                    {totalWaktu}/360 mnt
+                  </span>
+                </div>
+                <div className="flex justify-between p-2 rounded-xl"
+                  style={{ backgroundColor: modalOk ? '#D5F5E3' : '#FADBD8' }}>
+                  <span>💰 Modal</span>
+                  <span style={{ color: modalOk ? '#1E8449' : '#C0392B' }}>
+                    Rp{totalModal.toLocaleString('id-ID')}
+                  </span>
+                </div>
+              </div>
             </div>
-            <p className="text-xs text-gray-400 mb-3">
-              1 batch = 2 toples × Rp58.000 = Rp116.000
-            </p>
-            <div className="flex items-center justify-center gap-6">
-              <button
-                onClick={() => setBatchBangkit(prev => Math.max(0, prev - 1))}
-                className="w-10 h-10 rounded-full font-black text-xl text-white
-                           active:scale-95 transition-transform"
-                style={{ backgroundColor: '#C0392B' }}>
-                −
-              </button>
-              <span className="font-black text-3xl w-8 text-center">{batchBangkit}</span>
-              <button
-                onClick={() => setBatchBangkit(prev => prev + 1)}
-                className="w-10 h-10 rounded-full font-black text-xl text-white
-                           active:scale-95 transition-transform"
-                style={{ backgroundColor: '#1E8449' }}>
-                +
-              </button>
-            </div>
-          </div>
 
-          {/* Status Produksi */}
-          <div className="bg-white rounded-3xl p-4 shadow mb-4"
-            style={{ border: `2px solid ${statusOk ? '#1E8449' : '#C0392B'}` }}>
-            <p className="font-black text-center mb-2"
-              style={{ color: statusOk ? '#1E8449' : '#C0392B' }}>
-              Status: {statusOk ? '✅ OK' : '❌ Melewati Batas!'}
-            </p>
-            <div className="flex justify-between text-sm font-semibold">
-              <span style={{ color: waktuOk ? '#1E8449' : '#C0392B' }}>
-                ⏱ {totalWaktu}/360 mnt
-              </span>
-              <span style={{ color: modalOk ? '#1E8449' : '#C0392B' }}>
-                💰 Rp{totalModal.toLocaleString('id-ID')}
-              </span>
-            </div>
+            <button
+              onClick={() => setStep('berjualan')}
+              disabled={!statusOk || (batchKemojo === 0 && batchBangkit === 0)}
+              className="w-full py-4 rounded-2xl text-white font-black text-lg
+                        active:scale-95 transition-transform disabled:opacity-40"
+              style={{ backgroundColor: '#C0392B' }}>
+              Mulai Berjualan! 🚀
+            </button>
           </div>
-
-          <button
-            onClick={() => setStep('berjualan')}
-            disabled={!statusOk || (batchKemojo === 0 && batchBangkit === 0)}
-            className="w-full py-4 rounded-2xl text-white font-black text-lg
-                       active:scale-95 transition-transform disabled:opacity-40"
-            style={{ backgroundColor: '#C0392B' }}>
-            Mulai Berjualan! 🚀
-          </button>
         </div>
+
+        {/* Padding bawah mobile */}
+        <div className="h-4 md:hidden" />
       </div>
     )
   }
@@ -358,72 +362,81 @@ function BertemuPembeli() {
   // ── Hasil ─────────────────────────────────────
   if (step === 'hasil') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-4"
+      <div className="min-h-screen md:h-screen md:overflow-hidden flex flex-col"
         style={{ backgroundColor: '#FDFBE4' }}>
 
-        {/* Header XP */}
-        <div className="w-full max-w-sm mb-6">
+        <div className="flex items-center justify-between px-4 md:px-8 py-3 border-b-2 mb-4"
+          style={{ borderColor: '#ddd' }}>
           <XPBar />
+          <span className="px-3 py-1 rounded-full text-xs font-bold text-white"
+            style={{ backgroundColor: '#C0392B' }}>🛒 Bertemu Pembeli</span>
+          <div />
         </div>
 
-        {/* Kartu Pendapatan */}
-        <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow mb-4">
-          <h3 className="font-black text-center mb-4">Total Pendapatanmu Hari Ini</h3>
+        {/* Desktop: 2 kolom | Mobile: stack */}
+        <div className="flex-1 flex flex-col md:flex-row gap-4 px-4 md:px-8
+                        max-w-4xl mx-auto w-full items-start">
 
-          <div className="space-y-3">
-            <div className="flex justify-between items-center p-3 rounded-2xl"
-              style={{ backgroundColor: '#EAF4FB' }}>
-              <span className="font-bold text-sm">🍰 Bolu Kemojo terjual</span>
-              <span className="font-black">{totalKemojo} loyang</span>
+          {/* Kiri: Pendapatan */}
+          <div className="flex-1 bg-white rounded-3xl p-6 shadow"
+            style={{ border: '2px solid #ddd' }}>
+            <h3 className="font-black text-center mb-4">Total Pendapatanmu Hari Ini</h3>
+            <div className="space-y-3">
+              {[
+                { label: '🍰 Bolu Kemojo terjual', nilai: `${totalKemojo} loyang` },
+                { label: '🍪 Kue Bangkit terjual', nilai: `${totalBangkit} toples` },
+              ].map((item, i) => (
+                <div key={i} className="flex justify-between items-center p-3 rounded-2xl"
+                  style={{ backgroundColor: '#EAF4FB' }}>
+                  <span className="font-bold text-sm">{item.label}</span>
+                  <span className="font-black">{item.nilai}</span>
+                </div>
+              ))}
+              <div className="flex justify-between items-center p-3 rounded-2xl"
+                style={{ backgroundColor: '#D5F5E3', border: '2px solid #1E8449' }}>
+                <span className="font-bold text-sm">💵 Total Pendapatan</span>
+                <span className="font-black text-xl" style={{ color: '#1E8449' }}>
+                  Rp{pendapatan.toLocaleString('id-ID')}
+                </span>
+              </div>
             </div>
-            <div className="flex justify-between items-center p-3 rounded-2xl"
-              style={{ backgroundColor: '#EAF4FB' }}>
-              <span className="font-bold text-sm">🍪 Kue Bangkit terjual</span>
-              <span className="font-black">{totalBangkit} toples</span>
+          </div>
+
+          {/* Kanan: Kategori + XP + Tombol */}
+          <div className="flex flex-col gap-4 flex-1">
+            <div className="bg-white rounded-3xl p-5 shadow"
+              style={{ border: `2px solid ${info.warna}` }}>
+              <div className="text-center text-5xl mb-3">{info.emoji}</div>
+              <h3 className="font-black text-center mb-2" style={{ color: info.warna }}>
+                {info.judul}
+              </h3>
+              <p className="text-sm font-semibold text-gray-600 text-center leading-relaxed">
+                {info.pesan}
+              </p>
             </div>
-            <div className="flex justify-between items-center p-3 rounded-2xl"
-              style={{ backgroundColor: '#D5F5E3', border: '2px solid #1E8449' }}>
-              <span className="font-bold text-sm">💵 Total Pendapatan</span>
-              <span className="font-black text-lg" style={{ color: '#1E8449' }}>
-                Rp{pendapatan.toLocaleString('id-ID')}
-              </span>
+
+            <div className="bg-white rounded-3xl p-4 shadow text-center"
+              style={{ border: '2px solid #F1C40F' }}>
+              <p className="font-bold text-gray-400 text-sm">Total XP</p>
+              <p className="font-black text-3xl" style={{ color: '#F1C40F' }}>⭐ {xp} XP</p>
             </div>
+
+            <button onClick={() => setStep('penjelasan')}
+              className="w-full py-4 rounded-2xl text-white font-black text-lg
+                        active:scale-95 transition-transform"
+              style={{ backgroundColor: info.warna }}>
+              Yuk Mulai! 📊
+            </button>
+
+            <button onClick={() => navigate('/')}
+              className="w-full py-3 rounded-2xl font-bold"
+              style={{ backgroundColor: '#eee', color: '#666' }}>
+              Kembali ke Menu
+            </button>
           </div>
         </div>
 
-        {/* Kartu Kategori */}
-        <div className="bg-white rounded-3xl p-5 w-full max-w-sm shadow mb-4"
-          style={{ border: `2px solid ${info.warna}` }}>
-          <div className="text-center text-4xl mb-2">{info.emoji}</div>
-          <h3 className="font-black text-center mb-2" style={{ color: info.warna }}>
-            {info.judul}
-          </h3>
-          <p className="text-sm font-semibold text-gray-600 text-center leading-relaxed">
-            {info.pesan}
-          </p>
-        </div>
-
-        {/* Total XP */}
-        <div className="bg-white rounded-3xl p-4 w-full max-w-sm shadow mb-6 text-center">
-          <p className="font-bold text-gray-400 text-sm">Total XP</p>
-          <p className="font-black text-3xl" style={{ color: '#F1C40F' }}>⭐ {xp} XP</p>
-        </div>
-
-        <div className="flex flex-col gap-3 w-full max-w-sm">
-          <button
-            onClick={() => setStep('penjelasan')}
-            className="py-4 rounded-2xl text-white font-black text-lg
-                       active:scale-95 transition-transform"
-            style={{ backgroundColor: info.warna }}>
-            Yuk Mulai! 📊
-          </button>
-          <button
-            onClick={() => navigate('/')}
-            className="py-3 rounded-2xl font-bold"
-            style={{ backgroundColor: '#eee', color: '#666' }}>
-            Kembali ke Menu
-          </button>
-        </div>
+        <div className="h-4 md:hidden" />
       </div>
     )
   }
@@ -431,122 +444,123 @@ function BertemuPembeli() {
   // ── Penjelasan + Diagram ──────────────────────
   if (step === 'penjelasan') {
     return (
-      <div className="min-h-screen px-4 py-6" style={{ backgroundColor: '#FDFBE4' }}>
-        <div className="max-w-sm mx-auto">
+      <div className="min-h-screen md:h-screen md:overflow-hidden flex flex-col"
+        style={{ backgroundColor: '#FDFBE4' }}>
 
-          <div className="text-center mb-4">
-            <span className="px-4 py-1 rounded-full text-sm font-bold text-white"
-              style={{ backgroundColor: '#1E8449' }}>
-              📊 Sistem Pertidaksamaan
-            </span>
-          </div>
-
-          <h2 className="font-black text-center text-xl mb-4" style={{ color: '#333' }}>
-            Bagaimana Mencari Pendapatan Maksimum?
-          </h2>
-
-          {/* Sistem Pertidaksamaan */}
-          <div className="bg-white rounded-3xl p-5 shadow mb-4"
-            style={{ border: '2px solid #ddd' }}>
-            <h3 className="font-black mb-3 text-center" style={{ color: '#1E8449' }}>
-              Sistem Pertidaksamaan
-            </h3>
-            <div className="space-y-2">
-              {[
-                { label: '⏱ Kendala Waktu',  rumus: '80x + 60y ≤ 360'                   },
-                { label: '💰 Kendala Modal',  rumus: '120.000x + 116.000y ≤ 600.000'    },
-                { label: '📦 Non-negatif',    rumus: 'x ≥ 0,  y ≥ 0'                    },
-                { label: '🎯 Fungsi Tujuan',  rumus: 'Z = 120.000x + 116.000y (maks)'  },
-              ].map((item, i) => (
-                <div key={i} className="p-3 rounded-2xl" style={{ backgroundColor: '#EAF4FB' }}>
-                  <p className="text-xs font-bold text-gray-500">{item.label}</p>
-                  <p className="font-black text-sm" style={{ color: '#333' }}>{item.rumus}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Diagram */}
-          <div className="bg-white rounded-3xl p-4 shadow mb-4"
-            style={{ border: '2px solid #ddd' }}>
-            <h3 className="font-black text-center mb-1" style={{ color: '#1E8449' }}>
-              Grafik Daerah Feasibel
-            </h3>
-            <p className="text-xs text-center text-gray-400 font-semibold mb-3">
-              x = batch Bolu Kemojo &nbsp;|&nbsp; y = batch Kue Bangkit
-            </p>
-            <DiagramKoordinat
-              batchKemojo={batchKemojo}
-              batchBangkit={batchBangkit}
-            />
-          </div>
-
-          {/* Solusi Optimal */}
-          <div className="bg-white rounded-3xl p-5 shadow mb-6"
-            style={{ border: '2px solid #F1C40F' }}>
-            <h3 className="font-black text-center mb-3" style={{ color: '#333' }}>
-              🏆 Solusi Optimal
-            </h3>
-            <div className="space-y-2">
-              {[
-                { label: 'Titik Optimal',           nilai: 'x = 3,  y = 2'              },
-                { label: '🍰 Bolu Kemojo diproduksi', nilai: '3 batch = 12 loyang'        },
-                { label: '🍪 Kue Bangkit diproduksi', nilai: '2 batch = 4 toples'         },
-                { label: '⏱ Total waktu terpakai',   nilai: '80(3)+60(2) = 360 menit'    },
-                { label: '💰 Total modal terpakai',   nilai: 'Rp592.000 dari Rp600.000'   },
-              ].map((item, i) => (
-                <div key={i} className="flex justify-between items-center p-2 rounded-xl"
-                  style={{ backgroundColor: '#FEF9E7' }}>
-                  <span className="text-xs font-bold text-gray-600">{item.label}</span>
-                  <span className="text-xs font-black" style={{ color: '#333' }}>{item.nilai}</span>
-                </div>
-              ))}
-
-              <div className="p-3 rounded-2xl mt-2"
-                style={{ backgroundColor: '#D5F5E3', border: '2px solid #1E8449' }}>
-                <p className="text-center font-bold text-sm text-gray-600">
-                  Pendapatan Maksimum
-                </p>
-                <p className="text-center font-black text-2xl" style={{ color: '#1E8449' }}>
-                  Rp592.000
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Pendapatan user vs optimal */}
-          {kategori !== 'maksimum' && (
-            <div className="bg-white rounded-3xl p-4 shadow mb-6"
-              style={{ border: '2px solid #C0392B' }}>
-              <p className="font-bold text-center text-sm mb-2" style={{ color: '#C0392B' }}>
-                Perbandingan Pendapatanmu
-              </p>
-              <div className="flex justify-between">
-                <div className="text-center">
-                  <p className="text-xs font-semibold text-gray-400">Pilihanmu</p>
-                  <p className="font-black" style={{ color: '#C0392B' }}>
-                    Rp{pendapatan.toLocaleString('id-ID')}
-                  </p>
-                </div>
-                <div className="text-center">
-                  <p className="text-xs font-semibold text-gray-400">Maksimum</p>
-                  <p className="font-black" style={{ color: '#1E8449' }}>
-                    Rp{PENDAPATAN_MAKS.toLocaleString('id-ID')}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <button
-            onClick={() => navigate('/')}
-            className="w-full py-4 rounded-2xl text-white font-black text-lg
-                       active:scale-95 transition-transform"
-            style={{ backgroundColor: '#1E8449' }}>
-            🏠 Selesai & Kembali ke Menu
-          </button>
-
+        <div className="flex items-center justify-between px-4 md:px-8 py-3 border-b-2 mb-4"
+          style={{ borderColor: '#ddd' }}>
+          <XPBar />
+          <span className="px-3 py-1 rounded-full text-xs font-bold text-white"
+            style={{ backgroundColor: '#1E8449' }}>📊 Sistem Pertidaksamaan</span>
+          <div />
         </div>
+
+        <h2 className="font-black text-center text-xl mb-4 px-4" style={{ color: '#333' }}>
+          Bagaimana Mencari Pendapatan Maksimum?
+        </h2>
+
+        {/* Desktop: 2 kolom | Mobile: stack */}
+        <div className="flex-1 flex flex-col md:flex-row gap-4 px-4 md:px-8
+                        max-w-5xl mx-auto w-full overflow-y-auto">
+
+          {/* Kiri: Sistem + Solusi */}
+          <div className="flex flex-col gap-4 flex-1">
+            <div className="bg-white rounded-3xl p-5 shadow"
+              style={{ border: '2px solid #ddd' }}>
+              <h3 className="font-black mb-3 text-center" style={{ color: '#1E8449' }}>
+                Sistem Pertidaksamaan
+              </h3>
+              <div className="space-y-2">
+                {[
+                  { label: '⏱ Kendala Waktu',  rumus: '80x + 60y ≤ 360'                 },
+                  { label: '💰 Kendala Modal',  rumus: '120.000x + 116.000y ≤ 600.000'  },
+                  { label: '📦 Non-negatif',    rumus: 'x ≥ 0,  y ≥ 0'                  },
+                  { label: '🎯 Fungsi Tujuan',  rumus: 'Z = 120.000x + 116.000y (maks)' },
+                ].map((item, i) => (
+                  <div key={i} className="p-3 rounded-2xl" style={{ backgroundColor: '#EAF4FB' }}>
+                    <p className="text-xs font-bold text-gray-500">{item.label}</p>
+                    <p className="font-black text-sm">{item.rumus}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-white rounded-3xl p-5 shadow"
+              style={{ border: '2px solid #F1C40F' }}>
+              <h3 className="font-black text-center mb-3">🏆 Solusi Optimal</h3>
+              <div className="space-y-2">
+                {[
+                  { label: 'Titik Optimal',             nilai: 'x = 3,  y = 2'           },
+                  { label: '🍰 Bolu Kemojo diproduksi', nilai: '3 batch = 12 loyang'      },
+                  { label: '🍪 Kue Bangkit diproduksi', nilai: '2 batch = 4 toples'       },
+                  { label: '⏱ Total waktu',             nilai: '80(3)+60(2) = 360 menit'  },
+                  { label: '💰 Total modal',             nilai: 'Rp592.000 dari Rp600.000' },
+                ].map((item, i) => (
+                  <div key={i} className="flex justify-between items-center p-2 rounded-xl"
+                    style={{ backgroundColor: '#FEF9E7' }}>
+                    <span className="text-xs font-bold text-gray-600">{item.label}</span>
+                    <span className="text-xs font-black">{item.nilai}</span>
+                  </div>
+                ))}
+                <div className="p-3 rounded-2xl mt-1"
+                  style={{ backgroundColor: '#D5F5E3', border: '2px solid #1E8449' }}>
+                  <p className="text-center font-bold text-sm text-gray-600">
+                    Pendapatan Maksimum
+                  </p>
+                  <p className="text-center font-black text-2xl" style={{ color: '#1E8449' }}>
+                    Rp592.000
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Kanan: Diagram + Perbandingan + Tombol */}
+          <div className="flex flex-col gap-4 flex-1">
+            <div className="bg-white rounded-3xl p-4 shadow"
+              style={{ border: '2px solid #ddd' }}>
+              <h3 className="font-black text-center mb-1" style={{ color: '#1E8449' }}>
+                Grafik Daerah Feasibel
+              </h3>
+              <p className="text-xs text-center text-gray-400 font-semibold mb-2">
+                x = batch Bolu Kemojo &nbsp;|&nbsp; y = batch Kue Bangkit
+              </p>
+              <DiagramKoordinat batchKemojo={batchKemojo} batchBangkit={batchBangkit} />
+            </div>
+
+            {kategori !== 'maksimum' && (
+              <div className="bg-white rounded-3xl p-4 shadow"
+                style={{ border: '2px solid #C0392B' }}>
+                <p className="font-bold text-center text-sm mb-3" style={{ color: '#C0392B' }}>
+                  Perbandingan Pendapatanmu
+                </p>
+                <div className="flex justify-around">
+                  <div className="text-center">
+                    <p className="text-xs font-semibold text-gray-400">Pilihanmu</p>
+                    <p className="font-black text-lg" style={{ color: '#C0392B' }}>
+                      Rp{pendapatan.toLocaleString('id-ID')}
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xs font-semibold text-gray-400">Maksimum</p>
+                    <p className="font-black text-lg" style={{ color: '#1E8449' }}>
+                      Rp{PENDAPATAN_MAKS.toLocaleString('id-ID')}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <button onClick={() => navigate('/')}
+              className="w-full py-4 rounded-2xl text-white font-black text-lg
+                        active:scale-95 transition-transform"
+              style={{ backgroundColor: '#1E8449' }}>
+              🏠 Selesai & Kembali ke Menu
+            </button>
+          </div>
+        </div>
+
+        <div className="h-4 md:hidden" />
       </div>
     )
   }

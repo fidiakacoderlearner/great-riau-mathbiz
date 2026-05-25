@@ -44,7 +44,7 @@ function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4"
+    <div className="min-h-screen md:h-screen md:overflow-hidden flex flex-col items-center justify-center px-4"
       style={{ backgroundColor: '#FDFBE4' }}>
 
       {/* Header */}
@@ -57,7 +57,7 @@ function LoginPage() {
       </div>
 
       {/* Card Login */}
-      <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-lg">
+      <div className="bg-white rounded-3xl p-6 md:p-10 w-full max-w-sm md:max-w-lg shadow-lg">
 
         {/* Toggle Role */}
         <div className="flex rounded-2xl overflow-hidden mb-6"
@@ -149,7 +149,7 @@ function LoginPage() {
         ← Kembali ke Menu
       </button>
 
-    </div>
+    </div>    
   )
 }
 
