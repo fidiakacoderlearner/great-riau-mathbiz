@@ -8,6 +8,19 @@ export function GameProvider({ children }) {
   const [isFirstTry, setIsFirstTry] = useState(true)
   const [soalSelesai, setSoalSelesai] = useState([])
 
+  // Auth state
+  const [user, setUser] = useState(null)
+  // user = null artinya belum login
+  // user = { email, role } artinya sudah login
+
+  function login(userData) {
+    setUser(userData)
+  }
+
+  function logout() {
+    setUser(null)
+  }
+
   function tambahXP(jumlah) {
     setXp(prev => prev + jumlah)
   }
@@ -27,16 +40,12 @@ export function GameProvider({ children }) {
 
   return (
     <GameContext.Provider value={{
-      xp,
-      tambahXP,
-      kurangiXP,
-      hintDigunakan,
-      setHintDigunakan,
-      isFirstTry,
-      setIsFirstTry,
-      soalSelesai,
-      tandaiSelesai,
-      resetSoal
+      xp, tambahXP, kurangiXP,
+      hintDigunakan, setHintDigunakan,
+      isFirstTry, setIsFirstTry,
+      soalSelesai, tandaiSelesai,
+      resetSoal,
+      user, login, logout
     }}>
       {children}
     </GameContext.Provider>

@@ -68,3 +68,38 @@ export const XP_CONFIG = {
   maxAttempts: 3,
   waktuMaksimal: 300
 }
+
+export const soalDapurProduksi = [
+  {
+    id: 3,
+    tipe: 'pertidaksamaan',
+    judul: 'Pertidaksamaan Waktu',
+    konteks: 'Kamu hanya punya waktu 6 jam (360 menit). Sekali jalan, usahamu membuat 4 loyang Bolu Kemojo dalam 80 menit, atau 2 toples Kue Bangkit dalam 60 menit. x = batch Bolu Kemojo, y = batch Kue Bangkit.',
+    kanan: '360',
+    tokens: ['60', '80', '360', '<', '>', '≤', '≥'],
+    jawaban: { a: '80', b: '60', c: '≤' },
+    hint: 'x adalah batch Bolu Kemojo (80 menit per batch), y adalah batch Kue Bangkit (60 menit per batch). Total waktu tidak boleh melebihi 360 menit.',
+    penjelasan: [
+      'x = banyak batch Bolu Kemojo → tiap batch butuh 80 menit',
+      'y = banyak batch Kue Bangkit → tiap batch butuh 60 menit',
+      'Total waktu maksimal = 6 jam = 360 menit',
+      'Maka pertidaksamaannya: 80x + 60y ≤ 360'
+    ]
+  },
+  {
+    id: 4,
+    tipe: 'pertidaksamaan',
+    judul: 'Pertidaksamaan Modal',
+    konteks: 'Kamu punya modal Rp600.000. Biaya per batch Bolu Kemojo = 4 × Rp30.000 = Rp120.000. Biaya per batch Kue Bangkit = 2 × Rp58.000 = Rp116.000.',
+    kanan: '600.000',
+    tokens: ['116.000', '120.000', '600.000', '<', '>', '≤', '≥'],
+    jawaban: { a: '120.000', b: '116.000', c: '≤' },
+    hint: 'Biaya per batch kemojo = 4 × Rp30.000 = Rp120.000. Biaya per batch kue bangkit = 2 × Rp58.000 = Rp116.000. Total tidak boleh melebihi modal Rp600.000.',
+    penjelasan: [
+      'Biaya per batch Bolu Kemojo = 4 × Rp30.000 = Rp120.000',
+      'Biaya per batch Kue Bangkit = 2 × Rp58.000 = Rp116.000',
+      'Total modal maksimal = Rp600.000',
+      'Maka pertidaksamaannya: 120.000x + 116.000y ≤ 600.000'
+    ]
+  }
+]

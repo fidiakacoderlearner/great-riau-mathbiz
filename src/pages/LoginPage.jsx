@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useGame } from '../context/GameContext'
 
 function LoginPage() {
   const navigate = useNavigate()
+  const { login } = useGame()
 
   const [role, setRole] = useState('siswa')
   const [email, setEmail] = useState('')
@@ -26,10 +28,13 @@ function LoginPage() {
 
     setLoading(true)
 
-    // Simulasi loading
     setTimeout(() => {
       const akun = akunDemo[role]
       if (email === akun.email && password === akun.password) {
+        // Simpan info user ke context
+        login({ email, role })
+
+        // Redirect berdasarkan role
         navigate(role === 'siswa' ? '/' : '/dashboard-guru')
       } else {
         setError('Email atau password salah. Coba lagi.')
