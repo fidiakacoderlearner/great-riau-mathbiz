@@ -248,7 +248,11 @@ function BertemuPembeli() {
           <XPBar />
           <span className="px-3 py-1 rounded-full text-xs font-bold text-white"
             style={{ backgroundColor: '#C0392B' }}>🛒 Bertemu Pembeli</span>
-          <div />
+          <button onClick={() => navigate('/')}
+            className="px-2 py-1 rounded-xl text-sm font-bold"
+            style={{ backgroundColor: '#eee', color: '#666' }}>
+            🏠
+          </button>
         </div>
 
         <p className="font-black text-center text-lg mb-1 px-4" style={{ color: '#333' }}>
@@ -370,7 +374,11 @@ function BertemuPembeli() {
           <XPBar />
           <span className="px-3 py-1 rounded-full text-xs font-bold text-white"
             style={{ backgroundColor: '#C0392B' }}>🛒 Bertemu Pembeli</span>
-          <div />
+          <button onClick={() => navigate('/')}
+            className="px-2 py-1 rounded-xl text-sm font-bold"
+            style={{ backgroundColor: '#eee', color: '#666' }}>
+            🏠
+          </button>
         </div>
 
         {/* Desktop: 2 kolom | Mobile: stack */}
@@ -452,7 +460,11 @@ function BertemuPembeli() {
           <XPBar />
           <span className="px-3 py-1 rounded-full text-xs font-bold text-white"
             style={{ backgroundColor: '#1E8449' }}>📊 Sistem Pertidaksamaan</span>
-          <div />
+          <button onClick={() => navigate('/')}
+            className="px-2 py-1 rounded-xl text-sm font-bold"
+            style={{ backgroundColor: '#eee', color: '#666' }}>
+            🏠
+          </button>
         </div>
 
         <h2 className="font-black text-center text-xl mb-4 px-4" style={{ color: '#333' }}>

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useGame } from '../context/GameContext'
 import { XP_CONFIG } from '../data/soalData'
 import HintModal from './HintModal'
@@ -8,8 +8,13 @@ import FeedbackPopup from './FeedbackPopup'
 function SoalCard({ soal, onSelesai }) {
   const { tambahXP } = useGame()
 
+  // Ref — selalu baca nilai terbaru
+  const hintRef      = useRef(false)
+  const firstTryRef  = useRef(true)
+  const waktuMulai   = useRef(Date.now())
+
+  // State — hanya untuk tampilan UI
   const [percobaan,       setPercobaan]       = useState(XP_CONFIG.maxAttempts)
-  const [isFirstTry,      setIsFirstTry]      = useState(true)
   const [hintSudahDibuka, setHintSudahDibuka] = useState(false)
   const [showHint,        setShowHint]        = useState(false)
   const [showFeedback,    setShowFeedback]    = useState(false)
@@ -18,16 +23,16 @@ function SoalCard({ soal, onSelesai }) {
   const [sudahBenar,      setSudahBenar]      = useState(false)
   const [pilihanDipilih,  setPilihanDipilih]  = useState(null)
   const [inputDisabled,   setInputDisabled]   = useState(false)
-  const [waktuMulai]                          = useState(() => Date.now())
 
   function hitungXP() {
-    const elapsed      = (Date.now() - waktuMulai) / 1000
-    const timeXP       = elapsed <= 300 ? XP_CONFIG.waktuCepat : XP_CONFIG.waktuLambat
-    const bonus        = isFirstTry ? XP_CONFIG.firstTryBonus : 0
-    const total        = timeXP + bonus
-    const potongHint   = hintSudahDibuka
-      ? Math.floor(total * XP_CONFIG.hintPenaltyRatio) : 0
-    return Math.max(0, total - potongHint)
+    const elapsed    = (Date.now() - waktuMulai.current) / 1000
+    const timeXP     = elapsed <= 300 ? XP_CONFIG.waktuCepat : XP_CONFIG.waktuLambat
+    const bonus      = firstTryRef.current ? XP_CONFIG.firstTryBonus : 0
+    const total      = timeXP + bonus
+    const potong     = hintRef.current
+      ? Math.floor(total * XP_CONFIG.hintPenaltyRatio)
+      : 0
+    return Math.max(0, total - potong)
   }
 
   function tampilkanFeedback(isCorrect, sisaPercobaan, pesan) {
@@ -54,11 +59,18 @@ function SoalCard({ soal, onSelesai }) {
       tambahXP(hitungXP())
       tampilkanFeedback(true, percobaan, soal.feedbackBenar)
     } else {
-      setIsFirstTry(false)
+      firstTryRef.current = false  // ← ref langsung diupdate
       const sisa = percobaan - 1
       setPercobaan(sisa)
       tampilkanFeedback(false, sisa, soal.feedbackSalah)
     }
+  }
+
+  function handleBukaHint() {
+    if (hintRef.current) return
+    hintRef.current = true        // ← ref langsung diupdate
+    setHintSudahDibuka(true)
+    setShowHint(true)
   }
 
   function getWarnaTombol(nilai) {
@@ -71,7 +83,6 @@ function SoalCard({ soal, onSelesai }) {
 
   return (
     <>
-      {/* ── Layout: mobile=stack, desktop=2 kolom ── */}
       <div className="w-full flex flex-col md:grid md:grid-cols-2 md:gap-6 md:items-start">
 
         {/* Kolom Kiri — Resep */}
@@ -92,7 +103,6 @@ function SoalCard({ soal, onSelesai }) {
             {soal.soal}
           </p>
 
-          {/* Grid jawaban */}
           <div className="grid grid-cols-2 gap-3 mb-4">
             {soal.pilihan.map((pilihan) => (
               <button
@@ -107,14 +117,13 @@ function SoalCard({ soal, onSelesai }) {
             ))}
           </div>
 
-          {/* Baris bawah */}
           <div className="flex items-center justify-between">
             <p className="text-sm font-semibold" style={{ color: '#666' }}>
               {!sudahBenar && percobaan > 0 && `Kesempatan: ${percobaan}x`}
               {percobaan === 0 && !sudahBenar && 'Kesempatan habis'}
             </p>
             <button
-              onClick={() => { if (!hintSudahDibuka) { setShowHint(true); setHintSudahDibuka(true) } }}
+              onClick={handleBukaHint}
               disabled={hintSudahDibuka || sudahBenar || percobaan === 0}
               className="px-4 py-2 rounded-xl font-bold text-sm disabled:opacity-40"
               style={{ backgroundColor: '#F1C40F', color: '#333' }}>
@@ -124,7 +133,6 @@ function SoalCard({ soal, onSelesai }) {
         </div>
       </div>
 
-      {/* Modals & Popups — di luar grid supaya full-screen */}
       {showFeedback && feedbackData && (
         <FeedbackPopup pesan={feedbackData.pesan} benar={feedbackData.benar}
           onHide={() => setShowFeedback(false)} />

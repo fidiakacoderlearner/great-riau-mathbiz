@@ -34,16 +34,25 @@ function TimerDisplay({ detik }) {
 
 // Header konsisten untuk semua step game
 function GameHeader({ detikSisa, badge }) {
+  const navigate = useNavigate()
   return (
     <div className="flex items-center justify-between px-4 md:px-8 py-3 md:py-4
-                    border-b-2 mb-4 md:mb-6"
+                    border-b-2 mb-4 md:mb-6 shrink-0"
       style={{ borderColor: '#ddd', backgroundColor: '#FDFBE4' }}>
       <XPBar />
       <span className="px-3 py-1 rounded-full text-xs md:text-sm font-bold text-white"
         style={{ backgroundColor: '#C0392B' }}>
         {badge}
       </span>
-      <TimerDisplay detik={detikSisa} />
+      <div className="flex items-center gap-2">
+        <TimerDisplay detik={detikSisa} />
+        <button onClick={() => navigate('/')}
+          className="px-2 py-1 rounded-xl text-sm font-bold"
+          style={{ backgroundColor: '#eee', color: '#666' }}
+          title="Kembali ke Menu">
+          🏠
+        </button>
+      </div>
     </div>
   )
 }
@@ -59,6 +68,7 @@ function EksplorasiPage() {
   const detikSisa = useTimer(() => setTimerHabis(true))
 
   const soalProdukIni = soalRancanganUsaha.filter(s => s.produk === produkDipilih)
+  const { xp, resetXP } = useGame()
 
   function handlePilihProduk(produk) {
     setProdukDipilih(produk)
@@ -122,7 +132,7 @@ function EksplorasiPage() {
             Dengan resep andalan dan modal, yuk asah insting usahamu biar makin cuan!
           </p>
         </div>
-        <button onClick={() => setStep('transisi-rancangan')}
+        <button onClick={() => { resetXP(); setStep('transisi-rancangan') }}
           className="py-4 px-10 rounded-2xl text-white font-black text-lg
                      active:scale-95 transition-transform"
           style={{ backgroundColor: '#C0392B' }}>

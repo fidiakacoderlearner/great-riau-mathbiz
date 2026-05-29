@@ -10,11 +10,15 @@ export function GameProvider({ children }) {
     setXp(prev => prev + Math.max(0, jumlah))
   }
 
+  function resetXP() {
+    setXp(0)
+  }
+
   function login(userData)  { setUser(userData) }
   function logout()         { setUser(null) }
 
   return (
-    <GameContext.Provider value={{ xp, tambahXP, user, login, logout }}>
+    <GameContext.Provider value={{ xp, tambahXP, resetXP, user, login, logout }}>
       {children}
     </GameContext.Provider>
   )
