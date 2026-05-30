@@ -4,8 +4,8 @@ function TransisiPage({ judul, emoji, warna, onLanjut }) {
   const [progress, setProgress] = useState(0)
 
   useEffect(() => {
-    const durasi    = 4000   // 4 detik
-    const tick      = 50     // update tiap 50ms
+    const durasi    = 4000
+    const tick      = 50
     const increment = (tick / durasi) * 100
 
     const interval = setInterval(() => {
@@ -24,47 +24,66 @@ function TransisiPage({ judul, emoji, warna, onLanjut }) {
   }, [])
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center px-4"
-      style={{ backgroundColor: warna }}>
+    <div style={{
+      height: '100dvh',
+      backgroundColor: warna,
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '1rem'
+    }}>
+      <div style={{ fontSize: '5rem', marginBottom: '1.5rem' }}>{emoji}</div>
 
-      <div className="text-8xl mb-6" style={{ animation: 'pulse 1s infinite' }}>
-        {emoji}
-      </div>
-
-      <h1 className="text-3xl font-black text-white text-center mb-2">
+      <h1 style={{
+        fontSize: '2rem',
+        fontWeight: 900,
+        color: 'white',
+        textAlign: 'center',
+        marginBottom: '0.5rem'
+      }}>
         {judul}
       </h1>
 
-      <p className="text-white font-semibold mb-10 opacity-70">
+      <p style={{
+        color: 'rgba(255,255,255,0.7)',
+        fontWeight: 600,
+        marginBottom: '2.5rem'
+      }}>
         Bersiap...
       </p>
 
       {/* Progress bar */}
-      <div className="w-56 h-2 rounded-full overflow-hidden"
-        style={{ backgroundColor: 'rgba(255,255,255,0.3)' }}>
-        <div
-          className="h-full rounded-full"
-          style={{
-            width: `${progress}%`,
-            backgroundColor: 'white',
-            transition: 'width 50ms linear'
-          }} />
+      <div style={{
+        width: '14rem',
+        height: '0.5rem',
+        borderRadius: '9999px',
+        backgroundColor: 'rgba(255,255,255,0.3)',
+        overflow: 'hidden',
+        marginBottom: '1.5rem'
+      }}>
+        <div style={{
+          height: '100%',
+          width: `${progress}%`,
+          backgroundColor: 'white',
+          borderRadius: '9999px',
+          transition: 'width 50ms linear'
+        }} />
       </div>
 
-      {/* Titik-titik animasi */}
-      <div className="flex gap-2 mt-6">
+      {/* Titik animasi */}
+      <div style={{ display: 'flex', gap: '0.5rem' }}>
         {[0, 1, 2].map(i => (
-          <div key={i}
-            className="w-2 h-2 rounded-full"
-            style={{
-              backgroundColor: 'white',
-              opacity: 0.4 + (progress / 100) * 0.6,
-              transform: `scale(${0.8 + Math.sin((progress / 100 * Math.PI * 3) + i) * 0.3})`,
-              transition: 'all 0.1s'
-            }} />
+          <div key={i} style={{
+            width: '0.5rem',
+            height: '0.5rem',
+            borderRadius: '9999px',
+            backgroundColor: 'white',
+            opacity: 0.4 + (progress / 100) * 0.6,
+            transition: 'all 0.1s'
+          }} />
         ))}
       </div>
-
     </div>
   )
 }

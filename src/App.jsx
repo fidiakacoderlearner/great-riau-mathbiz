@@ -2,9 +2,9 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Layout from './components/Layout'
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
-import EksplorasiPage from './pages/EksplorasiPage'
-import DapurProduksiPage from './pages/DapurProduksiPage'
-import BertemuPembeli from './pages/BertemuPembeli'
+import RancanganUsahaPage from './pages/eksplorasi/RancanganUsahaPage'
+import DapurProduksiPage from './pages/eksplorasi/DapurProduksiPage'
+import BertemuPembeli from './pages/eksplorasi/BertemuPembeli'
 
 function App() {
   return (
@@ -13,12 +13,13 @@ function App() {
         <Routes>
           <Route path="/"                element={<LandingPage />} />
           <Route path="/login"           element={<LoginPage />} />
-          <Route path="/eksplorasi"      element={<EksplorasiPage />} />
-          <Route path="/dapur-produksi"  element={<DapurProduksiPage />} />
-          <Route path="/bertemu-pembeli" element={<BertemuPembeli />} />
-          <Route path="/tantangan"       element={<PlaceholderPage judul="🚣 Tantangan"       pesan="Fitur Pacu Jalur segera hadir!" />} />
-          <Route path="/dashboard-guru"  element={<PlaceholderPage judul="📚 Dashboard Guru"  pesan="Dashboard guru sedang dikembangkan." />} />
-          <Route path="*"                element={<PlaceholderPage judul="404"                pesan="Halaman tidak ditemukan." />} />
+          <Route path="/eksplorasi"                    element={<RancanganUsahaPage />} />
+          <Route path="/eksplorasi/rancangan-usaha"    element={<RancanganUsahaPage />} />
+          <Route path="/eksplorasi/dapur-produksi"     element={<DapurProduksiPage />} />
+          <Route path="/eksplorasi/bertemu-pembeli"    element={<BertemuPembeli />} />
+          <Route path="/tantangan"       element={<PlaceholderPage judul="🚣 Tantangan" pesan="Fitur Pacu Jalur segera hadir!" />} />
+          <Route path="/dashboard-guru"  element={<PlaceholderPage judul="📚 Dashboard Guru" pesan="Dashboard guru sedang dikembangkan." />} />
+          <Route path="*"               element={<PlaceholderPage judul="404" pesan="Halaman tidak ditemukan." />} />
         </Routes>
       </Layout>
     </BrowserRouter>
