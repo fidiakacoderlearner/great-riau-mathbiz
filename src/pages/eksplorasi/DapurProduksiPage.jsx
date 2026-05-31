@@ -8,6 +8,10 @@ import TransisiPage from '../../components/TransisiPage'
 import GameHeader from '../../components/GameHeader'
 import useTimer from '../../hooks/useTimer'
 import usePreventBack from '../../hooks/usePreventBack'
+import imgTransisiDapur from '../../assets/transisi-dapur.png'
+import imgTransisiPembeli from '../../assets/transisi-pembeli.png'
+import usePreventRefresh from '../../hooks/usePreventRefresh'
+import useAntiCheat from '../../hooks/useAntiCheat'
 
 function useTimer2(onHabis, started = true) {
   const [detikSisa, setDetikSisa] = useState(300)
@@ -42,8 +46,10 @@ function TimerDisplay({ detik }) {
 
 function DapurProduksiPage() {
   const navigate = useNavigate()
-  const { produkTerpilih, setGamePhase } = useGame()
+  const { produkTerpilih, setGamePhase, waktuTersedia, budgetProduksi } = useGame()
   usePreventBack()
+  usePreventRefresh()
+  useAntiCheat()
   useEffect(() => { setGamePhase('dapur') }, [])
 
   const [step,         setStep]         = useState('intro')
@@ -59,7 +65,10 @@ function DapurProduksiPage() {
 
   // Generate soal dinamis berdasarkan produk yang dipilih
   const soalList = produkA && produkB
-    ? [generateSoalWaktu(produkA, produkB), generateSoalModal(produkA, produkB)]
+    ? [
+        generateSoalWaktu(produkA, produkB, waktuTersedia),   // ← tambah waktuTersedia
+        generateSoalModal(produkA, produkB),
+      ]
     : []
 
   const soalSaatIni = soalList[indexSoal]
@@ -120,8 +129,8 @@ function DapurProduksiPage() {
   if (step === 'intro') {
     return (
       <div style={{
-        height: '100dvh', display: 'flex', flexDirection: 'column',
-        backgroundColor: '#FDFBE4', overflow: 'hidden'
+        minHeight: '100dvh', display: 'flex', flexDirection: 'column',
+        backgroundColor: '#FDFBE4'
       }}>
         <GameHeader
           badge="🏭 Dapur Produksi"
@@ -183,8 +192,8 @@ function DapurProduksiPage() {
   if (step === 'permisalan') {
     return (
       <div style={{
-        height: '100dvh', display: 'flex', flexDirection: 'column',
-        backgroundColor: '#FDFBE4', overflow: 'hidden'
+        minHeight: '100dvh', display: 'flex', flexDirection: 'column',
+        backgroundColor: '#FDFBE4'
       }}>
         <GameHeader
           badge="🏭 Dapur Produksi"
@@ -201,26 +210,41 @@ function DapurProduksiPage() {
           </p>
 
           <div className="flex flex-col md:flex-row gap-4 w-full"
-            style={{ maxWidth: '40rem', marginBottom: '2rem' }}>
+            style={{ maxWidth: '48rem', marginBottom: '2rem' }}> {/* maxWidth dilebarkan sedikit ke 48rem agar lebih lega */}
 
-            <div className="flex-1 bg-white rounded-3xl p-5 shadow flex items-center gap-4"
+            {/* KARTU PRODUK A (Variabel X) */}
+            <div className="flex-1 bg-white rounded-3xl p-6 shadow flex flex-col items-center justify-center gap-3 text-center"
               style={{ border: '2px solid #ddd' }}>
-              <div style={{ fontSize: '2rem' }}>{produkA.emoji}</div>
-              <div>
-                <p className="font-black text-3xl" style={{ color: '#C0392B' }}>x</p>
-                <p className="font-semibold text-sm text-gray-600">
-                  = banyak batch {produkA.nama}
+              
+              <img 
+                src={produkA.image} 
+                alt={produkA.nama} 
+                // Gambar sekarang bisa dibesarkan drastis: HP 32 (128px), Desktop 40 (160px)
+                className="w-32 h-32 md:w-40 md:h-40 object-contain drop-shadow-md transition-all duration-300" 
+              />
+              
+              <div className="mt-2">
+                <p className="font-black text-4xl mb-1" style={{ color: '#C0392B' }}>x</p>
+                <p className="font-semibold text-sm md:text-base text-gray-600">
+                  banyak batch {produkA.nama}
                 </p>
               </div>
             </div>
 
-            <div className="flex-1 bg-white rounded-3xl p-5 shadow flex items-center gap-4"
+            {/* KARTU PRODUK B (Variabel Y) */}
+            <div className="flex-1 bg-white rounded-3xl p-6 shadow flex flex-col items-center justify-center gap-3 text-center"
               style={{ border: '2px solid #ddd' }}>
-              <div style={{ fontSize: '2rem' }}>{produkB.emoji}</div>
-              <div>
-                <p className="font-black text-3xl" style={{ color: '#1E8449' }}>y</p>
-                <p className="font-semibold text-sm text-gray-600">
-                  = banyak batch {produkB.nama}
+              
+              <img 
+                src={produkB.image} 
+                alt={produkB.nama} 
+                className="w-32 h-32 md:w-40 md:h-40 object-contain drop-shadow-md transition-all duration-300" 
+              />
+              
+              <div className="mt-2">
+                <p className="font-black text-4xl mb-1" style={{ color: '#1E8449' }}>y</p>
+                <p className="font-semibold text-sm md:text-base text-gray-600">
+                  banyak batch {produkB.nama}
                 </p>
               </div>
             </div>
@@ -284,7 +308,11 @@ function DapurProduksiPage() {
         alignItems: 'center', justifyContent: 'center',
         backgroundColor: '#FDFBE4', padding: '1.5rem', overflow: 'hidden'
       }}>
-        <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🏭✅</div>
+        <img 
+          src={imgTransisiDapur} 
+          alt="Maskot Koki Selesai" 
+          className="w-32 h-32 md:w-48 md:h-48 object-contain drop-shadow-xl mb-4" 
+        />
         <h2 style={{ fontSize: '1.5rem', fontWeight: 900, color: '#1E8449',
                      marginBottom: '0.5rem', textAlign: 'center' }}>
           Dapur Produksi Selesai!
@@ -302,14 +330,16 @@ function DapurProduksiPage() {
               style={{ backgroundColor: '#EAF4FB' }}>
               ⏱ Waktu:{' '}
               <span className="font-black">
-                {produkA.waktuPerBatch}x + {produkB.waktuPerBatch}y ≤ 360
+                {mA.toLocaleString('id-ID')}x + {mB.toLocaleString('id-ID')}y ≤{' '}
+                {budgetProduksi.toLocaleString('id-ID')}
               </span>
             </div>
             <div className="flex-1 p-3 rounded-2xl font-bold text-sm"
               style={{ backgroundColor: '#EAF4FB' }}>
               💰 Modal:{' '}
               <span className="font-black">
-                {mA.toLocaleString('id-ID')}x + {mB.toLocaleString('id-ID')}y ≤ 600.000
+                {mA.toLocaleString('id-ID')}x + {mB.toLocaleString('id-ID')}y ≤{' '}
+                {budgetProduksi.toLocaleString('id-ID')}
               </span>
             </div>
           </div>
@@ -345,7 +375,7 @@ function DapurProduksiPage() {
     return (
       <TransisiPage
         judul="Bertemu Pembeli"
-        emoji="🛒"
+        image={imgTransisiPembeli} 
         warna="#C0392B"
         onLanjut={() => navigate('/eksplorasi/bertemu-pembeli')}
       />

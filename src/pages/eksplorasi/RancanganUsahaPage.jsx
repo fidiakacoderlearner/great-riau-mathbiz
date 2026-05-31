@@ -8,6 +8,17 @@ import TransisiPage from '../../components/TransisiPage'
 import GameHeader from '../../components/GameHeader'
 import useTimer from '../../hooks/useTimer'
 import usePreventBack from '../../hooks/usePreventBack'
+import imgMaskot from '../../assets/maskot.png'
+import imgTransisiRancangan from '../../assets/transisi-rancangan.png'
+import imgTransisiDapur from '../../assets/transisi-dapur.png'
+import usePreventRefresh from '../../hooks/usePreventRefresh'
+import useAntiCheat from '../../hooks/useAntiCheat'
+import {
+  KARYAWAN_DATA,
+  getHargaKaryawan,
+  MAX_KARYAWAN,
+  WAKTU_DASAR,
+} from '../../data/soalData'
 
 const MAX_PRODUK = 2
 
@@ -29,11 +40,16 @@ function TimerDisplay({ detik }) {
 function RancanganUsahaPage() {
   const navigate = useNavigate()
   const {
-    xp, selesaiIds, addProdukTerpilih,
+    selesaiIds, addProdukTerpilih,
     startNewSession, setGamePhase, gamePhase,
-    allDoneIds
+    allDoneIds,
+    sewaKaryawan, lepasKaryawan,
+    karyawanSesi, budgetProduksi, waktuTersedia,
+    budget, runKe,
   } = useGame()
   usePreventBack()
+  usePreventRefresh()
+  useAntiCheat()
 
   // Jika ada sesi aktif (phase=rancangan), skip welcome
   const isResuming = gamePhase === 'rancangan' && selesaiIds.length > 0
@@ -107,7 +123,11 @@ function RancanganUsahaPage() {
         alignItems: 'center', justifyContent: 'center',
         backgroundColor: '#FDFBE4', padding: '1.5rem', overflow: 'hidden'
       }}>
-        <div style={{ fontSize: '5rem', marginBottom: '1.5rem' }}>👨‍🍳</div>
+        <img 
+          src={imgMaskot} 
+          alt="Maskot Koki Pengusaha" 
+          className="w-32 h-32 md:w-48 md:h-48 object-contain drop-shadow-xl mb-4" 
+        />
         <h1 style={{ fontSize: '1.75rem', fontWeight: 900, textAlign: 'center',
                      color: '#C0392B', marginBottom: '1rem' }}>
           Selamat Datang,<br />Pengusaha Muda!
@@ -130,7 +150,6 @@ function RancanganUsahaPage() {
             startNewSession()  // reset sesi (XP tetap)
             setGamePhase('rancangan')
             setProdukSelesai([])
-            setTimerStarted(true)
             setStep('transisi-rancangan')
           }}
           style={{
@@ -147,15 +166,223 @@ function RancanganUsahaPage() {
   // ── Transisi ──────────────────────────────────────────────────────
   if (step === 'transisi-rancangan') {
     return (
-      <TransisiPage judul="Rancangan Usaha" emoji="📋" warna="#C0392B"
-        onLanjut={() => setStep('pilih-produk')} />
+      <TransisiPage 
+        judul="Rancangan Usaha" 
+        image={imgTransisiRancangan} 
+        warna="#C0392B"
+        onLanjut={() => { setStep('atur-tim') }} 
+      />   
     )
   }
 
   if (step === 'transisi-dapur') {
     return (
-      <TransisiPage judul="Dapur Produksi" emoji="🏭" warna="#1E8449"
-        onLanjut={() => navigate('/eksplorasi/dapur-produksi')} />
+      <TransisiPage 
+        judul="Dapur Produksi" 
+        image={imgTransisiDapur}     
+        warna="#1E8449"
+        onLanjut={() => navigate('/eksplorasi/dapur-produksi')} 
+      />
+    )
+  }
+
+  // ── Atur Tim ──────────────────────────────────────────────────────
+  if (step === 'atur-tim') {
+    const jamTersedia = Math.floor(waktuTersedia / 60)
+    const menitSisa   = waktuTersedia % 60
+
+    return (
+      <div style={{
+        height: '100dvh', display: 'flex', flexDirection: 'column',
+        backgroundColor: '#FDFBE4', overflow: 'hidden'
+      }}>
+        <GameHeader
+          badge="👥 Atur Tim Produksi"
+          timerEl={<TimerDisplay detik={detikSisa} />}
+        />
+
+        <div style={{ flex: 1, overflowY: 'auto', padding: '1rem' }}
+          className="md:px-8">
+          <div style={{ maxWidth: '48rem', margin: '0 auto' }}>
+
+            {/* Info Budget & Waktu */}
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="bg-white rounded-2xl p-4 text-center shadow"
+                style={{ border: '2px solid #1E8449' }}>
+                <p className="text-xs font-bold text-gray-400 mb-1">💰 Budget Tersedia</p>
+                <p className="font-black text-lg" style={{ color: '#1E8449' }}>
+                  Rp{budgetProduksi.toLocaleString('id-ID')}
+                </p>
+                {karyawanSesi.length > 0 && (
+                  <p className="text-xs font-semibold mt-1" style={{ color: '#C0392B' }}>
+                    dari Rp{budget.toLocaleString('id-ID')}
+                  </p>
+                )}
+              </div>
+              <div className="bg-white rounded-2xl p-4 text-center shadow"
+                style={{ border: '2px solid #3498DB' }}>
+                <p className="text-xs font-bold text-gray-400 mb-1">⏱ Waktu Produksi</p>
+                <p className="font-black text-lg" style={{ color: '#3498DB' }}>
+                  {jamTersedia} jam
+                  {menitSisa > 0 && ` ${menitSisa} mnt`}
+                </p>
+                {karyawanSesi.length > 0 && (
+                  <p className="text-xs font-semibold mt-1" style={{ color: '#1E8449' }}>
+                    +{waktuTersedia - WAKTU_DASAR} mnt dari karyawan
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Slot Karyawan Tersewa */}
+            {karyawanSesi.length > 0 && (
+              <div className="bg-white rounded-2xl p-4 shadow mb-4"
+                style={{ border: '2px solid #F1C40F' }}>
+                <p className="font-black text-sm mb-2" style={{ color: '#333' }}>
+                  👥 Tim Kamu ({karyawanSesi.length}/{MAX_KARYAWAN} slot)
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {karyawanSesi.map((level, i) => {
+                    const k = KARYAWAN_DATA.find(k => k.level === level)
+                    return (
+                      <div key={i} className="flex items-center gap-1 px-3 py-1 rounded-xl"
+                        style={{ backgroundColor: '#EAF4FB' }}>
+                        <img src={k.image} alt={k.nama} className="w-5 h-5 object-contain" />
+                        <span className="text-xs font-bold">{k.nama}</span>
+                        <button
+                          onClick={() => lepasKaryawan(i)}
+                          style={{
+                            marginLeft: '4px', fontSize: '0.7rem',
+                            color: '#C0392B', fontWeight: 900,
+                            background: 'none', border: 'none', cursor: 'pointer'
+                          }}>
+                          ✕
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Kartu 3 Level Karyawan */}
+            <p className="font-black text-center mb-3" style={{ color: '#333' }}>
+              Sewa Karyawan (Opsional)
+            </p>
+
+            {karyawanSesi.length >= MAX_KARYAWAN && (
+              <div className="text-center text-sm font-bold mb-3"
+                style={{ color: '#F39C12' }}>
+                ⚠️ Slot karyawan penuh (maksimal {MAX_KARYAWAN})
+              </div>
+            )}
+
+            <div className="flex flex-col md:flex-row gap-3 mb-6">
+              {KARYAWAN_DATA.map(k => {
+                const harga       = getHargaKaryawan(k.level, runKe)
+                const bisa        = karyawanSesi.length < MAX_KARYAWAN &&
+                                    budgetProduksi - harga >= 0
+                const sudahPenuh  = karyawanSesi.length >= MAX_KARYAWAN
+                const tidakCukup  = budgetProduksi - harga < 0
+
+                return (
+                  <div key={k.level}
+                    className="flex-1 bg-white rounded-3xl p-5 shadow"
+                    style={{
+                      border: `2px solid ${bisa ? '#ddd' : '#eee'}`,
+                      opacity: sudahPenuh || tidakCukup ? 0.6 : 1
+                    }}>
+                    {/* Badge level */}
+                    <div className="relative flex justify-center items-center mb-4 mt-2">
+                      <span className="absolute -top-2 -left-2 text-xs font-black px-2 py-1 rounded-full text-white shadow-sm z-10"
+                        style={{ backgroundColor:
+                          k.level === 1 ? '#95A5A6' :
+                          k.level === 2 ? '#E67E22' : '#F1C40F',
+                          color: k.level === 3 ? '#333' : 'white'
+                        }}>
+                        Level {k.level}
+                      </span>
+                      <img 
+                        src={k.image} 
+                        alt={k.nama} 
+                        // Ukuran diperbesar drastis: HP ke 24 (96px), Desktop XL ke 40 (160px)
+                        className="w-24 h-24 md:w-32 md:h-32 xl:w-40 xl:h-40 object-contain drop-shadow-md transition-all duration-300" 
+                      />
+                    </div>
+
+                    <p className="font-black text-base mb-1">{k.nama}</p>
+                    <p className="text-xs text-gray-400 font-semibold mb-3">
+                      {k.deskripsi}
+                    </p>
+
+                    {/* Stats */}
+                    <div className="flex flex-col gap-1 mb-3">
+                      <div className="flex justify-between text-xs font-bold">
+                        <span className="text-gray-500">⏱ Tambah Waktu</span>
+                        <span style={{ color: '#3498DB' }}>+{k.tambahWaktu} menit</span>
+                      </div>
+                      <div className="flex justify-between text-xs font-bold">
+                        <span className="text-gray-500">💰 Upah</span>
+                        <span style={{ color: '#C0392B' }}>
+                          Rp{harga.toLocaleString('id-ID')}
+                        </span>
+                      </div>
+                      {runKe > 0 && (
+                        <div className="flex justify-between text-xs font-semibold"
+                          style={{ color: '#aaa' }}>
+                          <span>📈 Inflasi</span>
+                          <span>+{Math.round((Math.pow(1.2, runKe) - 1) * 100)}%</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <button
+                      onClick={() => sewaKaryawan(k.level)}
+                      disabled={!bisa}
+                      className="w-full py-2 rounded-xl font-bold text-sm
+                                active:scale-95 transition-transform disabled:cursor-not-allowed"
+                      style={{
+                        backgroundColor: bisa ? '#1E8449' : '#eee',
+                        color:           bisa ? 'white'   : '#aaa',
+                        border: 'none',
+                        cursor: bisa ? 'pointer' : 'not-allowed'
+                      }}>
+                      {sudahPenuh    ? 'Slot Penuh'    :
+                      tidakCukup   ? 'Budget Kurang'  :
+                      '+ Sewa'}
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Tombol */}
+            <div className="flex flex-col gap-3 pb-6">
+              <button
+                onClick={() => {
+                  setTimerStarted(true)
+                  setStep('pilih-produk')
+                }}
+                className="w-full py-4 rounded-2xl text-white font-black text-lg
+                          active:scale-95"
+                style={{ backgroundColor: '#C0392B', border: 'none', cursor: 'pointer' }}>
+                Mulai Pilih Produk →
+              </button>
+              {karyawanSesi.length > 0 && (
+                <p className="text-center text-xs font-semibold text-gray-400">
+                  Total upah: Rp{
+                    karyawanSesi.reduce((s, l) =>
+                      s + getHargaKaryawan(l, runKe), 0
+                    ).toLocaleString('id-ID')
+                  } | Budget produksi: Rp{budgetProduksi.toLocaleString('id-ID')} |
+                  Waktu: {waktuTersedia} menit
+                </p>
+              )}
+            </div>
+
+          </div>
+        </div>
+      </div>
     )
   }
 
@@ -201,7 +428,7 @@ function RancanganUsahaPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3"
             style={{ maxWidth: '64rem', margin: '0 auto 1rem' }}>
             {produkList.map(produk => {
-              const selesai = allDoneIds.includes(produk.id)
+              const selesai = allDoneIds.includes(produk.id) || produkSelesai.includes(produk.id)
 
               return (
                 <button
@@ -220,9 +447,15 @@ function RancanganUsahaPage() {
                     opacity: selesai ? 0.6 : 1,
                     transition: 'transform 0.1s'
                   }}>
-                  <span style={{ fontSize: '2rem' }}>
-                    {produk.emoji}
-                  </span>
+                  <img 
+                    src={produk.image} 
+                    alt={produk.nama} 
+                    className="w-30 h-30 md:w-32 md:h-32 xl:w-36 xl:h-36 mb-2 transition-all duration-200"
+                    style={{ 
+                      objectFit: 'contain', 
+                      filter: selesai ? 'grayscale(0)' : 'none' // Opsional: efek visual jika sudah selesai
+                    }} 
+                  />
                   <p style={{
                     fontWeight: 800, fontSize: '0.8rem', textAlign: 'center',
                     color: selesai ? '#1E8449' : '#333', lineHeight: 1.3

@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 
-function TransisiPage({ judul, emoji, warna, onLanjut }) {
+// 1. Ubah parameter 'emoji' menjadi 'image'
+function TransisiPage({ judul, image, warna, onLanjut }) {
   const [progress, setProgress] = useState(0)
 
+  // 1. useEffect PERTAMA: Khusus untuk mengatur animasi progress bar
   useEffect(() => {
     const durasi    = 4000
     const tick      = 50
@@ -10,10 +12,10 @@ function TransisiPage({ judul, emoji, warna, onLanjut }) {
 
     const interval = setInterval(() => {
       setProgress(prev => {
+        // Cukup kalkulasi angka saja, JANGAN panggil onLanjut() di sini
         const next = prev + increment
         if (next >= 100) {
           clearInterval(interval)
-          onLanjut()
           return 100
         }
         return next
@@ -22,6 +24,14 @@ function TransisiPage({ judul, emoji, warna, onLanjut }) {
 
     return () => clearInterval(interval)
   }, [])
+
+  // 2. useEffect KEDUA (BARU): Khusus memantau jika progress sudah selesai
+  useEffect(() => {
+    // Jika progress sudah mencapai 100, barulah panggil fungsi dari Parent
+    if (progress >= 100) {
+      onLanjut()
+    }
+  }, [progress, onLanjut])
 
   return (
     <div style={{
@@ -33,7 +43,13 @@ function TransisiPage({ judul, emoji, warna, onLanjut }) {
       justifyContent: 'center',
       padding: '1rem'
     }}>
-      <div style={{ fontSize: '5rem', marginBottom: '1.5rem' }}>{emoji}</div>
+      
+      {/* 2. Ganti elemen div emoji dengan tag img */}
+      <img 
+        src={image} 
+        alt={judul} 
+        className="w-40 h-40 md:w-56 md:h-56 object-contain drop-shadow-xl mb-6 transition-transform duration-300 hover:scale-105" 
+      />
 
       <h1 style={{
         fontSize: '2rem',

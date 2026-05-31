@@ -2,18 +2,21 @@ import { useEffect } from 'react'
 
 function usePreventBack() {
   useEffect(() => {
-    // Push 50 state palsu di awal — back harus ditekan 50x untuk menembus
-    for (let i = 0; i < 50; i++) {
-      window.history.pushState(null, '', window.location.pathname)
-    }
+    // Berikan 3 bantalan state. Aman dari warning Chrome, tapi tebal menahan spam klik.
+    window.history.pushState(null, '', window.location.href)
+    window.history.pushState(null, '', window.location.href)
+    window.history.pushState(null, '', window.location.href)
 
     const handlePopState = () => {
-      // Setiap kali back ditekan, langsung push lagi
-      window.history.pushState(null, '', window.location.pathname)
+      // Setiap kali pertahanan dijebol 1 lapis, langsung tambal 1 lapis lagi
+      window.history.pushState(null, '', window.location.href)
     }
 
     window.addEventListener('popstate', handlePopState)
-    return () => window.removeEventListener('popstate', handlePopState)
+    
+    return () => {
+      window.removeEventListener('popstate', handlePopState)
+    }
   }, [])
 }
 

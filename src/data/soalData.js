@@ -1,9 +1,61 @@
+import imgWajik from '../assets/Wajik.png'
+import imgDodol from '../assets/Dodol.png'
+import imgLopek from '../assets/Lopek.png'
+import imgKueBangkit from '../assets/Kue_Bangkit.png'
+import imgLempokDurian from '../assets/Lempok_Durian.png'
+import imgBoluKemojo from '../assets/Bolu_Kemojo.png'
+import imgBoluBerendam from '../assets/Bolu_Berendam.png'
+import imgKueTalam from '../assets/Kue_Talam.png'
+import imgKuePinyaram from '../assets/Kue_Pinyaram.png'
+import imgKueSagu from '../assets/Kue_Sagu.png'
+import imgKaryawan1 from '../assets/karyawan-1.png'
+import imgKaryawan2 from '../assets/karyawan-2.png'
+import imgKaryawan3 from '../assets/karyawan-3.png'
+
+// ── Data Karyawan ─────────────────────────────────────────────────
+export const KARYAWAN_DATA = [
+  {
+    level:       1,
+    nama:        'Pembantu Dapur',
+    image:        imgKaryawan1,
+    deskripsi:   'Membantu pekerjaan dasar di dapur',
+    tambahWaktu: 60,
+    hargaDasar:  60000,
+  },
+  {
+    level:       2,
+    nama:        'Juru Masak',
+    image:       imgKaryawan2,
+    deskripsi:   'Berpengalaman memasak kue tradisional',
+    tambahWaktu: 90,
+    hargaDasar:  100000,
+  },
+  {
+    level:       3,
+    nama:        'Chef Melayu',
+    image:       imgKaryawan3,
+    deskripsi:   'Ahli kuliner khas Melayu Riau yang andal',
+    tambahWaktu: 120,
+    hargaDasar:  150000,
+  },
+]
+
+export const MAX_KARYAWAN  = 3
+export const INFLASI_RATE  = 1.2
+export const WAKTU_DASAR   = 360
+
+export function getHargaKaryawan(level, runKe) {
+  const k = KARYAWAN_DATA.find(k => k.level === level)
+  if (!k) return 0
+  return Math.round(k.hargaDasar * Math.pow(INFLASI_RATE, runKe))
+}
+
 // ── 10 Produk Khas Melayu Riau ────────────────────────────────────
 export const produkList = [
   {
     id: 'bolu-kemojo',
     nama: 'Bolu Kemojo',
-    emoji: '🌺',
+    image: imgBoluKemojo,
     satuan: 'loyang',
     isiPerBatch: 4,
     waktuPerBatch: 80,
@@ -39,7 +91,7 @@ export const produkList = [
   {
     id: 'kue-bangkit',
     nama: 'Kue Bangkit',
-    emoji: '🍪',
+    image: imgKueBangkit,
     satuan: 'toples',
     isiPerBatch: 2,
     waktuPerBatch: 60,
@@ -75,7 +127,7 @@ export const produkList = [
   {
     id: 'lempuk-durian',
     nama: 'Lempuk Durian',
-    emoji: '🟡',
+    image: imgLempokDurian,
     satuan: 'bungkus',
     isiPerBatch: 3,
     waktuPerBatch: 90,
@@ -109,7 +161,7 @@ export const produkList = [
   {
     id: 'kue-lopek',
     nama: 'Kue Lopek',
-    emoji: '🌿',
+    image: imgLopek,
     satuan: 'paket',
     isiPerBatch: 5,
     waktuPerBatch: 60,
@@ -144,7 +196,7 @@ export const produkList = [
   {
     id: 'dodol',
     nama: 'Dodol',
-    emoji: '🍫',
+    image: imgDodol,
     satuan: 'bungkus',
     isiPerBatch: 2,
     waktuPerBatch: 120,
@@ -179,7 +231,7 @@ export const produkList = [
   {
     id: 'kue-wajik',
     nama: 'Kue Wajik',
-    emoji: '💎',
+    image: imgWajik,
     satuan: 'kotak',
     isiPerBatch: 4,
     waktuPerBatch: 90,
@@ -214,7 +266,7 @@ export const produkList = [
   {
     id: 'kue-sagu',
     nama: 'Kue Sagu',
-    emoji: '⭐',
+    image: imgKueSagu,
     satuan: 'toples',
     isiPerBatch: 3,
     waktuPerBatch: 60,
@@ -249,7 +301,7 @@ export const produkList = [
   {
     id: 'bolu-berendam',
     nama: 'Bolu Berendam',
-    emoji: '🧁',
+    image: imgBoluBerendam,
     satuan: 'loyang',
     isiPerBatch: 3,
     waktuPerBatch: 75,
@@ -285,7 +337,7 @@ export const produkList = [
   {
     id: 'kue-talam',
     nama: 'Kue Talam',
-    emoji: '🥮',
+    image: imgKueTalam,
     satuan: 'loyang',
     isiPerBatch: 4,
     waktuPerBatch: 60,
@@ -321,7 +373,7 @@ export const produkList = [
   {
     id: 'kue-pinyaram',
     nama: 'Kue Pinyaram',
-    emoji: '🥐',
+    image: imgKuePinyaram,
     satuan: 'bungkus',
     isiPerBatch: 4,
     waktuPerBatch: 60,
@@ -373,7 +425,46 @@ export function getModalPerBatch(produk) {
 }
 
 // Brute-force LP solver — cari kombinasi (x,y) yang memaksimalkan pendapatan
-export function hitungOptimal(produkA, produkB, budget = 600000, waktuTotal = 360) {
+export function generateSoalWaktu(produkA, produkB, waktuTotal = WAKTU_DASAR) {
+  const wA = produkA.waktuPerBatch.toString()
+  const wB = produkB.waktuPerBatch.toString()
+  const kanan = waktuTotal.toString()
+
+  const tokens = [wA, wB]
+  if (!tokens.includes(kanan)) tokens.push(kanan)
+  tokens.push('<', '>', '≤', '≥')
+
+  return {
+    id:      'waktu',
+    tipe:    'pertidaksamaan',
+    judul:   'Pertidaksamaan Waktu',
+    konteks: `Kamu hanya punya waktu ${Math.floor(waktuTotal / 60)} jam ` +
+             `(${waktuTotal} menit). Sekali jalan, usahamu membuat ` +
+             `${produkA.isiPerBatch} ${produkA.satuan} ${produkA.nama} ` +
+             `dalam ${produkA.waktuPerBatch} menit, atau ` +
+             `${produkB.isiPerBatch} ${produkB.satuan} ${produkB.nama} ` +
+             `dalam ${produkB.waktuPerBatch} menit. ` +
+             `x = batch ${produkA.nama}, y = batch ${produkB.nama}.`,
+    kanan,
+    tokens,
+    jawaban: { a: wA, b: wB, c: '≤' },
+    hint:    `x = batch ${produkA.nama} (${produkA.waktuPerBatch} menit/batch), ` +
+             `y = batch ${produkB.nama} (${produkB.waktuPerBatch} menit/batch). ` +
+             `Total waktu tidak boleh melebihi ${waktuTotal} menit.`,
+    penjelasan: [
+      `x = banyak batch ${produkA.nama} → tiap batch ${produkA.waktuPerBatch} menit`,
+      `y = banyak batch ${produkB.nama} → tiap batch ${produkB.waktuPerBatch} menit`,
+      `Total waktu maksimal = ${Math.floor(waktuTotal / 60)} jam = ${waktuTotal} menit`,
+      `Pertidaksamaan: ${wA}x + ${wB}y ≤ ${kanan}`
+    ]
+  }
+}
+
+export function hitungOptimal(
+  produkA, produkB,
+  budget     = 600000,
+  waktuTotal = WAKTU_DASAR
+) {
   const mA = getModalPerBatch(produkA)
   const mB = getModalPerBatch(produkB)
 
@@ -385,61 +476,23 @@ export function hitungOptimal(produkA, produkB, budget = 600000, waktuTotal = 36
   for (let x = 0; x <= maxX; x++) {
     const waktuSisa = waktuTotal - x * produkA.waktuPerBatch
     const maxY = Math.floor(waktuSisa / produkB.waktuPerBatch)
-
     for (let y = 0; y <= maxY; y++) {
       if (x * mA + y * mB > budget) continue
-      const revenue = x * produkA.isiPerBatch * produkA.hargaJual
-                    + y * produkB.isiPerBatch * produkB.hargaJual
-      if (revenue > bestRevenue) {
-        bestRevenue = revenue
-        bestX = x
-        bestY = y
+      const rev = x * produkA.isiPerBatch * produkA.hargaJual
+               + y * produkB.isiPerBatch * produkB.hargaJual
+      if (rev > bestRevenue) {
+        bestRevenue = rev; bestX = x; bestY = y
       }
     }
   }
 
   return {
-    x: bestX,
-    y: bestY,
+    x: bestX, y: bestY,
     revenue: bestRevenue,
-    modalBatchA: mA,
-    modalBatchB: mB,
+    modalBatchA:   mA,
+    modalBatchB:   mB,
     waktuTerpakai: bestX * produkA.waktuPerBatch + bestY * produkB.waktuPerBatch,
-    modalTerpakai: bestX * mA + bestY * mB
-  }
-}
-
-// Generate soal pertidaksamaan waktu
-export function generateSoalWaktu(produkA, produkB) {
-  const wA = produkA.waktuPerBatch.toString()
-  const wB = produkB.waktuPerBatch.toString()
-
-  // Selalu sertakan wA dan wB secara terpisah — tidak pakai Set
-  // supaya kalau wA === wB, kedua token tetap ada di pool
-  const tokens = [wA, wB]
-  if (!tokens.includes('360')) tokens.push('360')
-  tokens.push('<', '>', '≤', '≥')
-
-  return {
-    id:      'waktu',
-    tipe:    'pertidaksamaan',
-    judul:   'Pertidaksamaan Waktu',
-    konteks: `Kamu hanya punya waktu 6 jam (360 menit). Sekali jalan, usahamu membuat ` +
-             `${produkA.isiPerBatch} ${produkA.satuan} ${produkA.nama} dalam ${produkA.waktuPerBatch} menit, ` +
-             `atau ${produkB.isiPerBatch} ${produkB.satuan} ${produkB.nama} dalam ${produkB.waktuPerBatch} menit. ` +
-             `x = batch ${produkA.nama}, y = batch ${produkB.nama}.`,
-    kanan:   '360',
-    tokens,
-    jawaban: { a: wA, b: wB, c: '≤' },
-    hint:    `x = batch ${produkA.nama} (${produkA.waktuPerBatch} menit/batch), ` +
-             `y = batch ${produkB.nama} (${produkB.waktuPerBatch} menit/batch). ` +
-             `Total waktu tidak boleh melebihi 360 menit.`,
-    penjelasan: [
-      `x = banyak batch ${produkA.nama} → tiap batch ${produkA.waktuPerBatch} menit`,
-      `y = banyak batch ${produkB.nama} → tiap batch ${produkB.waktuPerBatch} menit`,
-      'Total waktu maksimal = 6 jam = 360 menit',
-      `Pertidaksamaan: ${wA}x + ${wB}y ≤ 360`
-    ]
+    modalTerpakai: bestX * mA + bestY * mB,
   }
 }
 
