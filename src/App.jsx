@@ -13,7 +13,6 @@ function App() {
         <Routes>
           <Route path="/"                element={<LandingPage />} />
           <Route path="/login"           element={<LoginPage />} />
-          <Route path="/eksplorasi"                    element={<RancanganUsahaPage />} />
           <Route path="/eksplorasi/rancangan-usaha"    element={<RancanganUsahaPage />} />
           <Route path="/eksplorasi/dapur-produksi"     element={<DapurProduksiPage />} />
           <Route path="/eksplorasi/bertemu-pembeli"    element={<BertemuPembeli />} />
