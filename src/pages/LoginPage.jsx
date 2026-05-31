@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useGame } from '../context/GameContext'
+import imgMaskot from '../assets/maskot.png'
 
 const STRIPE_ATAS  = 'repeating-linear-gradient(90deg,#C0392B 0,#C0392B 20px,#F1C40F 20px,#F1C40F 40px,#1E8449 40px,#1E8449 60px)'
 const STRIPE_BAWAH = 'repeating-linear-gradient(90deg,#1E8449 0,#1E8449 20px,#F1C40F 20px,#F1C40F 40px,#C0392B 40px,#C0392B 60px)'
@@ -48,7 +49,11 @@ function LoginPage() {
 
         {/* Header */}
         <div className="text-center mb-6">
-          <div className="text-5xl mb-2">🍰</div>
+          <img 
+            src={imgMaskot} 
+            alt="Maskot Koki The Great Riau" 
+            className="w-24 h-24 md:w-28 md:h-28 mx-auto mb-3 object-contain drop-shadow-md" 
+          />
           <h1 className="text-2xl font-black" style={{ color: '#C0392B' }}>
             The Great Riau
           </h1>
