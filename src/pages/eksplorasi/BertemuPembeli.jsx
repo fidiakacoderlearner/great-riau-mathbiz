@@ -405,8 +405,9 @@ function BertemuPembeli() {
             <div className="bg-white rounded-3xl p-5 shadow"
               style={{ border: '2px solid #ddd' }}>
               <div className="flex justify-between items-center mb-1">
-                <span className="font-bold">
-                  {produkA.emoji} Batch {produkA.nama}
+                <span className="font-bold flex items-center gap-2">
+                  <img src={produkA.image} alt={produkA.nama} className="w-5 h-5 md:w-6 md:h-6 object-contain drop-shadow-sm" />
+                  Batch {produkA.nama}
                 </span>
                 <span className="text-xs font-semibold text-gray-400">
                   {produkA.waktuPerBatch} mnt/batch
@@ -440,8 +441,9 @@ function BertemuPembeli() {
             <div className="bg-white rounded-3xl p-5 shadow"
               style={{ border: '2px solid #ddd' }}>
               <div className="flex justify-between items-center mb-1">
-                <span className="font-bold">
-                  {produkB.emoji} Batch {produkB.nama}
+                <span className="font-bold flex items-center gap-2">
+                  <img src={produkB.image} alt={produkB.nama} className="w-5 h-5 md:w-6 md:h-6 object-contain drop-shadow-sm" />
+                  Batch {produkB.nama}
                 </span>
                 <span className="text-xs font-semibold text-gray-400">
                   {produkB.waktuPerBatch} mnt/batch
@@ -546,15 +548,17 @@ function BertemuPembeli() {
             <div className="flex flex-col gap-3">
               <div className="flex justify-between items-center p-3 rounded-2xl"
                 style={{ backgroundColor: '#EAF4FB' }}>
-                <span className="font-bold text-sm">
-                  {produkA.emoji} {produkA.nama} terjual
+                <span className="font-bold text-sm flex items-center gap-2">
+                  <img src={produkA.image} alt={produkA.nama} className="w-6 h-6 object-contain drop-shadow-sm" />
+                  {produkA.nama} terjual
                 </span>
                 <span className="font-black">{totalUnitA} {produkA.satuan}</span>
               </div>
               <div className="flex justify-between items-center p-3 rounded-2xl"
                 style={{ backgroundColor: '#EAF4FB' }}>
-                <span className="font-bold text-sm">
-                  {produkB.emoji} {produkB.nama} terjual
+                <span className="font-bold text-sm flex items-center gap-2">
+                  <img src={produkB.image} alt={produkB.nama} className="w-6 h-6 object-contain drop-shadow-sm" />
+                  {produkB.nama} terjual
                 </span>
                 <span className="font-black">{totalUnitB} {produkB.satuan}</span>
               </div>
