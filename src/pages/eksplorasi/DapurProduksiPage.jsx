@@ -354,7 +354,7 @@ function DapurProduksiPage() {
               backgroundColor: '#1E8449', color: 'white',
               fontWeight: 700, fontSize: '1rem', border: 'none', cursor: 'pointer'
             }}>
-            🛒 Lanjut ke Bertemu Pembeli
+            Lanjut ke Bertemu Pembeli
           </button>
           <button onClick={() => navigate('/')}
             className="flex-1"

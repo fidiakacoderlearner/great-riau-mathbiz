@@ -675,11 +675,21 @@ function BertemuPembeli() {
                   {[
                     { label: 'Titik Optimal', nilai: `x = ${optimal.x},  y = ${optimal.y}` },
                     {
-                      label: `${produkA.emoji} ${produkA.nama}`,
+                      label: (
+                        <span className="flex items-center gap-1.5">
+                          <img src={produkA.image} alt={produkA.nama} className="w-5 h-5 object-contain drop-shadow-sm" />
+                          {produkA.nama}
+                        </span>
+                      ),
                       nilai: `${optimal.x} batch = ${optimal.x * produkA.isiPerBatch} ${produkA.satuan}`
                     },
                     {
-                      label: `${produkB.emoji} ${produkB.nama}`,
+                      label: (
+                        <span className="flex items-center gap-1.5">
+                          <img src={produkB.image} alt={produkB.nama} className="w-5 h-5 object-contain drop-shadow-sm" />
+                          {produkB.nama}
+                        </span>
+                      ),
                       nilai: `${optimal.y} batch = ${optimal.y * produkB.isiPerBatch} ${produkB.satuan}`
                     },
                     { label: '⏱ Total waktu', nilai: `${optimal.waktuTerpakai} dari ${waktuTersedia} menit` },
