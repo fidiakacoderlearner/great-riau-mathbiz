@@ -162,3 +162,99 @@ MIT License
 Afdhal Fidi Ansori
 
 GitHub: https://github.com/fidiakacoderlearner
+
+## Screenshots
+
+### Landing Page
+
+Halaman awal yang memperkenalkan pemain pada dunia The Great Riau: Math-Biz Mania dan memberikan gambaran mengenai konsep permainan berbasis matematika, bisnis, dan budaya Melayu Riau.
+
+![Landing Page](docs/images/LandingPage.png)
+
+---
+
+### Login Page
+
+Halaman autentikasi yang digunakan pemain untuk memulai perjalanan dan mengakses fitur permainan.
+
+![Login Page](docs/images/LoginPage.png)
+
+---
+
+### Home Page
+
+Pusat navigasi utama yang menampilkan informasi progres pemain, XP, budget, dan akses ke berbagai aktivitas permainan.
+
+![Home Page](docs/images/HomeMurid.png)
+
+---
+
+### Employee Selection
+
+Halaman untuk merekrut dan mengelola karyawan yang akan membantu proses produksi usaha pemain.
+
+![Employee Selection](docs/images/PilihKaryawan.png)
+
+---
+
+### Initial Capital Selection
+
+Halaman pemilihan modal awal yang akan digunakan untuk memulai usaha dan menentukan strategi bisnis pemain.
+
+![Initial Capital Selection](docs/images/PilihModal.png)
+
+---
+
+### Capital Planning Challenge
+
+Tantangan matematika yang mengharuskan pemain menentukan keputusan modal usaha berdasarkan perhitungan yang diberikan.
+
+![Capital Planning Challenge](docs/images/SoalModal.png)
+
+---
+
+### Production Challenge
+
+Tantangan produksi yang mengintegrasikan konsep matematika dan pengambilan keputusan bisnis dalam proses pembuatan produk.
+
+![Production Challenge](docs/images/SoalDapur.png)
+
+---
+
+### Production Result
+
+Halaman hasil produksi yang menampilkan performa proses produksi dan pencapaian pemain.
+
+![Production Result](docs/images/DapurSelesai.png)
+
+---
+
+### Batch Management
+
+Fitur pengaturan batch produksi untuk mengoptimalkan penggunaan sumber daya dan keuntungan usaha.
+
+![Batch Management](docs/images/AturBatch.png)
+
+---
+
+### Customer Interaction Result
+
+Halaman hasil interaksi dengan pembeli yang menunjukkan keberhasilan strategi bisnis yang diterapkan pemain.
+
+![Customer Interaction Result](docs/images/PembeliSelesai.png)
+
+---
+
+### Mathematical Visualization
+
+Visualisasi grafik dan sistem pertidaksamaan menggunakan SVG native untuk membantu pemain memahami konsep matematika secara interaktif.
+
+![Mathematical Visualization](docs/images/Grafik.png)
+
+---
+
+### Review & Analytics
+
+Halaman evaluasi yang menyajikan statistik permainan, performa usaha, dan perkembangan pemain selama satu sesi permainan.
+
+![Review & Analytics](docs/images/ReviewPage.png)
