@@ -67,7 +67,7 @@ function BarChartSVG({ data, warna, labelKey, nilaiKey, satuan = '' }) {
 
 // ── Radar Chart SVG ───────────────────────────────────────────────
 function RadarChart({ kecepatan, akurasi, kemandirian, pemahamanLP, konsistensi }) {
-  const cx = 140, cy = 130, r = 90
+  const cx = 160, cy = 130, r = 80
   const labels = ['Kecepatan', 'Akurasi', 'Kemandirian', 'Pemahaman', 'Konsistensi']
   const values = [kecepatan, akurasi, kemandirian, pemahamanLP, konsistensi]
   const n = labels.length
@@ -96,7 +96,7 @@ function RadarChart({ kecepatan, akurasi, kemandirian, pemahamanLP, konsistensi 
   const gridLevels = [25, 50, 75, 100]
 
   return (
-    <svg width="100%" viewBox="0 0 280 230">
+    <svg width="100%" viewBox="0 0 320 250">
       {/* Grid */}
       {gridLevels.map(level => {
         const pts = labels.map((_, i) => getAxisPoint(i, r * level / 100))
