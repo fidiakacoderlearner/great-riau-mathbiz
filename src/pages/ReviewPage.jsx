@@ -64,7 +64,7 @@ function BarChart({ runHistory }) {
             {/* Produk */}
             <text x={x + barW / 2} y={H - pad.bottom + 22} fontSize="6"
               fill="#999" textAnchor="middle">
-              {run.emojiA}{run.emojiB}
+              {run.produkA?.split(' ')[0]} {run.produkA?.split(' ')[1]} & {run.produkB?.split(' ')[0]} {run.produkB?.split(' ')[1]}
             </text>
           </g>
         )
@@ -125,7 +125,7 @@ function WaktuChart({ runHistory }) {
             </text>
             <text x={x + barW / 2} y={H - pad.bottom + 22} fontSize="6"
               fill="#999" textAnchor="middle">
-              {run.emojiA}{run.emojiB}
+              {run.produkA?.split(' ')[0]} {run.produkA?.split(' ')[1]} & {run.produkB?.split(' ')[0]} {run.produkB?.split(' ')[1]}
             </text>
           </g>
         )
@@ -145,7 +145,8 @@ function ReviewPage() {
   const {
     totalXp, runHistory,
     totalPendapatan, totalWaktuBermain,
-    budget, allDoneIds, resetAll
+    budget, allDoneIds, resetAll,
+    produkList,
   } = useGame()
 
   const rataRataWaktu = runHistory.length
@@ -271,10 +272,11 @@ function ReviewPage() {
                 <h3 className="font-black mb-3 text-center" style={{ color: '#333' }}>
                   🌟 Run Terbaik
                 </h3>
-                <div className="text-center mb-3">
-                  <span style={{ fontSize: '2.5rem' }}>
-                    {bestRun.emojiA}{bestRun.emojiB}
-                  </span>
+                <div className="flex justify-center gap-2 mb-3">
+                  <img src={bestRun.imageA} alt={bestRun.produkA}
+                    style={{ width: '3rem', height: '3rem', objectFit: 'contain' }} />
+                  <img src={bestRun.imageB} alt={bestRun.produkB}
+                    style={{ width: '3rem', height: '3rem', objectFit: 'contain' }} />
                 </div>
                 <div className="flex flex-col gap-2">
                   {[
@@ -332,11 +334,16 @@ function ReviewPage() {
               {runHistory.map((run, i) => (
                 <div key={i} className="p-3 rounded-2xl"
                   style={{ backgroundColor: '#EAF4FB' }}>
-                  <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <img src={run.imageA} alt={run.produkA}
+                      style={{ width: '1.5rem', height: '1.5rem', objectFit: 'contain' }} />
+                    <img src={run.imageB} alt={run.produkB}
+                      style={{ width: '1.5rem', height: '1.5rem', objectFit: 'contain' }} />
                     <span style={{ fontWeight: 900, fontSize: '0.875rem' }}>
-                      {run.emojiA} {run.produkA} + {run.emojiB} {run.produkB}
+                      {run.produkA} + {run.produkB}
                     </span>
-                    <span style={{ fontWeight: 900, color: '#1E8449', fontSize: '0.875rem' }}>
+                    <span style={{ fontWeight: 900, color: '#1E8449', fontSize: '0.875rem',
+                                  marginLeft: 'auto' }}>
                       Rp{run.pendapatan.toLocaleString('id-ID')}
                     </span>
                   </div>

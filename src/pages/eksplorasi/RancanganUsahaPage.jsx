@@ -1,23 +1,19 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useGame } from '../../context/GameContext'
-import { produkList } from '../../data/soalData'
 import SoalCard from '../../components/SoalCard'
 import XPBar from '../../components/XPBar'
 import TransisiPage from '../../components/TransisiPage'
 import GameHeader from '../../components/GameHeader'
 import useTimer from '../../hooks/useTimer'
 import usePreventBack from '../../hooks/usePreventBack'
-import imgMaskot from '../../assets/maskot.png'
-import imgTransisiRancangan from '../../assets/transisi-rancangan.png'
-import imgTransisiDapur from '../../assets/transisi-dapur.png'
 import usePreventRefresh from '../../hooks/usePreventRefresh'
 import useAntiCheat from '../../hooks/useAntiCheat'
 import {
-  KARYAWAN_DATA,
-  getHargaKaryawan,
   MAX_KARYAWAN,
   WAKTU_DASAR,
+  getHargaKaryawan,
+  XP_CONFIG,
 } from '../../data/soalData'
 
 const MAX_PRODUK = 2
@@ -46,6 +42,8 @@ function RancanganUsahaPage() {
     sewaKaryawan, lepasKaryawan,
     karyawanSesi, budgetProduksi, waktuTersedia,
     budget, runKe,
+    produkList,
+    karyawanList,
   } = useGame()
   usePreventBack()
   usePreventRefresh()
@@ -124,7 +122,7 @@ function RancanganUsahaPage() {
         backgroundColor: '#FDFBE4', padding: '1.5rem', overflow: 'hidden'
       }}>
         <img 
-          src={imgMaskot} 
+          src="/assets/maskot.png" 
           alt="Maskot Koki Pengusaha" 
           className="w-32 h-32 md:w-48 md:h-48 object-contain drop-shadow-xl mb-4" 
         />
@@ -168,7 +166,7 @@ function RancanganUsahaPage() {
     return (
       <TransisiPage 
         judul="Rancangan Usaha" 
-        image={imgTransisiRancangan} 
+        image="/assets/transisi-rancangan.png"
         warna="#C0392B"
         onLanjut={() => { setStep('atur-tim') }} 
       />   
@@ -179,7 +177,7 @@ function RancanganUsahaPage() {
     return (
       <TransisiPage 
         judul="Dapur Produksi" 
-        image={imgTransisiDapur}     
+        image="/assets/transisi-dapur.png"     
         warna="#1E8449"
         onLanjut={() => navigate('/eksplorasi/dapur-produksi')} 
       />
@@ -243,7 +241,7 @@ function RancanganUsahaPage() {
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {karyawanSesi.map((level, i) => {
-                    const k = KARYAWAN_DATA.find(k => k.level === level)
+                    const k = karyawanList.find(k => k.level === level)
                     return (
                       <div key={i} className="flex items-center gap-1 px-3 py-1 rounded-xl"
                         style={{ backgroundColor: '#EAF4FB' }}>
@@ -278,7 +276,7 @@ function RancanganUsahaPage() {
             )}
 
             <div className="flex flex-col md:flex-row gap-3 mb-6">
-              {KARYAWAN_DATA.map(k => {
+              {karyawanList.map(k => {
                 const harga       = getHargaKaryawan(k.level, runKe)
                 const bisa        = karyawanSesi.length < MAX_KARYAWAN &&
                                     budgetProduksi - harga >= 0

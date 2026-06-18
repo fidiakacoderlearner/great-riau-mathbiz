@@ -8,8 +8,6 @@ import TransisiPage from '../../components/TransisiPage'
 import GameHeader from '../../components/GameHeader'
 import useTimer from '../../hooks/useTimer'
 import usePreventBack from '../../hooks/usePreventBack'
-import imgTransisiDapur from '../../assets/transisi-dapur.png'
-import imgTransisiPembeli from '../../assets/transisi-pembeli.png'
 import usePreventRefresh from '../../hooks/usePreventRefresh'
 import useAntiCheat from '../../hooks/useAntiCheat'
 
@@ -309,7 +307,7 @@ function DapurProduksiPage() {
         backgroundColor: '#FDFBE4', padding: '1.5rem', overflow: 'hidden'
       }}>
         <img 
-          src={imgTransisiDapur} 
+          src="/assets/transisi-dapur.png" 
           alt="Maskot Koki Selesai" 
           className="w-32 h-32 md:w-48 md:h-48 object-contain drop-shadow-xl mb-4" 
         />
@@ -375,7 +373,7 @@ function DapurProduksiPage() {
     return (
       <TransisiPage
         judul="Bertemu Pembeli"
-        image={imgTransisiPembeli} 
+        image="/assets/transisi-pembeli.png" 
         warna="#C0392B"
         onLanjut={() => navigate('/eksplorasi/bertemu-pembeli')}
       />

@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useGame } from '../../context/GameContext'
 import { getModalPerBatch, hitungOptimal } from '../../data/soalData'
 import GameHeader from '../../components/GameHeader'
-import usePreventBack from '../../hooks/usePreventBack'
-import imgTokoBuka from '../../assets/toko-buka.png' 
+import usePreventBack from '../../hooks/usePreventBack' 
 import usePreventRefresh from '../../hooks/usePreventRefresh'
 import useAntiCheat from '../../hooks/useAntiCheat'
 
@@ -92,7 +91,7 @@ function BuyerAnimation({ onSelesai }) {
     }}>
       {/* Pastikan variabel imgTokoBuka sudah di-import di atas */}
       <img 
-        src={imgTokoBuka} 
+        src="/assets/toko-buka.png" 
         alt="Toko Jajanan Melayu Buka" 
         className="w-full max-w-3xl mb-8 object-contain drop-shadow-2xl transition-all duration-300 scale-[1.15] md:scale-100"
         style={{ maxHeight: '70vh' }}

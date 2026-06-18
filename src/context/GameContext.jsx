@@ -1,18 +1,20 @@
 import { createContext, useContext, useState, useEffect } from 'react'
+import { onAuthStateChange, logout as supabaseLogout } from '../lib/auth'
 import {
-  produkList,
-  KARYAWAN_DATA,
+  fetchProduk, fetchKaryawan,
+  createSesi, updateSesi, createRun,
+} from '../lib/game'
+import {
   getHargaKaryawan,
   MAX_KARYAWAN,
   WAKTU_DASAR,
+  INFLASI_RATE,
 } from '../data/soalData'
 
 const GameContext = createContext()
 const BUDGET_AWAL = 600000
 
 const LS = {
-  XP:            'griau_xp',
-  USER:          'griau_user',
   PILIH_IDS:     'griau_produk_pilih_ids',
   SELESAI_IDS:   'griau_produk_selesai_ids',
   ALL_DONE:      'griau_all_completed',
@@ -30,26 +32,79 @@ function safeLoad(key, fallback) {
 }
 
 export function GameProvider({ children }) {
-  const [xp,           setXp]           = useState(() => safeLoad(LS.XP,          0))
-  const [user,         setUser]         = useState(() => safeLoad(LS.USER,        null))
-  const [pilihIds,     setPilihIds]     = useState(() => safeLoad(LS.PILIH_IDS,   []))
-  const [selesaiIds,   setSelesaiIds]   = useState(() => safeLoad(LS.SELESAI_IDS, []))
-  const [allDoneIds,   setAllDoneIds]   = useState(() => safeLoad(LS.ALL_DONE,    []))
-  const [gamePhase,    setGamePhaseRaw] = useState(() => safeLoad(LS.PHASE,       null))
-  const [budget,       setBudget]       = useState(() => safeLoad(LS.BUDGET,      BUDGET_AWAL))
-  const [runHistory,   setRunHistory]   = useState(() => safeLoad(LS.RUN_HISTORY, []))
+  // ── Auth ─────────────────────────────────────────────────────────
+  const [user,        setUser]        = useState(null)
+  const [authLoading, setAuthLoading] = useState(true)
+
+  // ── Master Data dari Supabase ─────────────────────────────────────
+  const [produkList,   setProdukList]   = useState([])
+  const [karyawanList, setKaryawanList] = useState([])
+  const [dataLoading,  setDataLoading]  = useState(true)
+
+  // ── Game State ───────────────────────────────────────────────────
+  const [xp,           setXp]           = useState(0)
+  const [pilihIds,     setPilihIds]     = useState(() => safeLoad(LS.PILIH_IDS,    []))
+  const [selesaiIds,   setSelesaiIds]   = useState(() => safeLoad(LS.SELESAI_IDS,  []))
+  const [allDoneIds,   setAllDoneIds]   = useState(() => safeLoad(LS.ALL_DONE,     []))
+  const [gamePhase,    setGamePhaseRaw] = useState(() => safeLoad(LS.PHASE,        null))
+  const [budget,       setBudget]       = useState(() => safeLoad(LS.BUDGET,       BUDGET_AWAL))
+  const [runHistory,   setRunHistory]   = useState(() => safeLoad(LS.RUN_HISTORY,  []))
   const [sessionStart, setSessionStart] = useState(() => safeLoad(LS.SESSION_START, null))
+  const [karyawanSesi, setKaryawanSesi] = useState([])
 
-  // Karyawan — tidak perlu persist, reset tiap sesi
-  const [karyawanSesi, setKaryawanSesi] = useState([]) // array of level numbers [1,2,3,...]
+  // ── Load Auth ─────────────────────────────────────────────────────
+  useEffect(() => {
+    const { data: { subscription } } = onAuthStateChange(async (userData) => {
 
-  // ── Sync localStorage ───────────────────────────────────────────
-  useEffect(() => { localStorage.setItem(LS.XP,          JSON.stringify(xp))         }, [xp])
-  useEffect(() => { localStorage.setItem(LS.PILIH_IDS,   JSON.stringify(pilihIds))   }, [pilihIds])
-  useEffect(() => { localStorage.setItem(LS.SELESAI_IDS, JSON.stringify(selesaiIds)) }, [selesaiIds])
-  useEffect(() => { localStorage.setItem(LS.ALL_DONE,    JSON.stringify(allDoneIds)) }, [allDoneIds])
-  useEffect(() => { localStorage.setItem(LS.BUDGET,      JSON.stringify(budget))     }, [budget])
-  useEffect(() => { localStorage.setItem(LS.RUN_HISTORY, JSON.stringify(runHistory)) }, [runHistory])
+      if (userData) {
+        console.log('User login:', userData.email, '| Role:', userData.role)
+
+        // Hanya load progress kalau role-nya siswa
+        if (userData.role === 'siswa') {
+          try {
+            const { fetchGameProgress } = await import('../lib/game')
+            const progress = await fetchGameProgress(userData.id)
+            setAllDoneIds(progress.allDoneIds)
+            setBudget(progress.budget)
+            setRunHistory(progress.runHistory)
+          } catch (err) {
+            console.error('Gagal load progress siswa:', err)
+          }
+        }
+        // Guru tidak perlu load game progress
+      }
+
+      setUser(userData)
+      setAuthLoading(false)
+    })
+    return () => subscription.unsubscribe()
+  }, [])
+
+  // ── Load Produk & Karyawan dari Supabase ─────────────────────────
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [produk, karyawan] = await Promise.all([
+          fetchProduk(),
+          fetchKaryawan(),
+        ])
+        setProdukList(produk)
+        setKaryawanList(karyawan)
+      } catch (err) {
+        console.error('Gagal load data:', err)
+      } finally {
+        setDataLoading(false)
+      }
+    }
+    loadData()
+  }, [])
+
+  // ── Sync localStorage ────────────────────────────────────────────
+  useEffect(() => { localStorage.setItem(LS.PILIH_IDS,    JSON.stringify(pilihIds))    }, [pilihIds])
+  useEffect(() => { localStorage.setItem(LS.SELESAI_IDS,  JSON.stringify(selesaiIds))  }, [selesaiIds])
+  useEffect(() => { localStorage.setItem(LS.ALL_DONE,     JSON.stringify(allDoneIds))  }, [allDoneIds])
+  useEffect(() => { localStorage.setItem(LS.BUDGET,       JSON.stringify(budget))      }, [budget])
+  useEffect(() => { localStorage.setItem(LS.RUN_HISTORY,  JSON.stringify(runHistory))  }, [runHistory])
   useEffect(() => {
     if (sessionStart) localStorage.setItem(LS.SESSION_START, JSON.stringify(sessionStart))
     else              localStorage.removeItem(LS.SESSION_START)
@@ -58,37 +113,43 @@ export function GameProvider({ children }) {
     if (gamePhase) localStorage.setItem(LS.PHASE, JSON.stringify(gamePhase))
     else           localStorage.removeItem(LS.PHASE)
   }, [gamePhase])
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem(LS.USER, JSON.stringify(user))
-    } else {
-      localStorage.removeItem(LS.USER)
-    }
-  }, [user])
 
-  // ── Derived: Produk ─────────────────────────────────────────────
+  // ── Derived ──────────────────────────────────────────────────────
   const produkTerpilih = pilihIds
     .map(id => produkList.find(p => p.id === id))
     .filter(Boolean)
 
-  // ── Derived: Karyawan ───────────────────────────────────────────
-  const runKe = runHistory.length  // 0 = run pertama
+  const runKe = runHistory.length
 
   function hitungBiayaKaryawan(levels, runIndex) {
-    return levels.reduce((sum, level) => sum + getHargaKaryawan(level, runIndex), 0)
+    return levels.reduce((sum, level) => {
+      const k = karyawanList.find(k => k.level === level)
+      if (!k) return sum
+      return sum + Math.round(k.hargaDasar * Math.pow(k.inflasiRate ?? INFLASI_RATE, runIndex))
+    }, 0)
   }
 
   const totalBiayaKaryawan = hitungBiayaKaryawan(karyawanSesi, runKe)
   const budgetProduksi     = budget - totalBiayaKaryawan
   const waktuTersedia      = WAKTU_DASAR + karyawanSesi.reduce((sum, level) => {
-    return sum + (KARYAWAN_DATA.find(k => k.level === level)?.tambahWaktu ?? 0)
+    const k = karyawanList.find(k => k.level === level)
+    return sum + (k?.tambahWaktu ?? 0)
   }, 0)
 
-  // ── Karyawan Actions ────────────────────────────────────────────
+  const totalXp           = runHistory.reduce((s, r) => s + r.xpRun, 0)
+  const totalPendapatan   = runHistory.reduce((s, r) => s + r.pendapatan, 0)
+  const totalWaktuBermain = runHistory.reduce((s, r) => s + r.waktuBermain, 0)
+  const reviewUnlocked    = allDoneIds.length >= produkList.length && produkList.length > 0
+
+  // ── XP ───────────────────────────────────────────────────────────
+  function tambahXP(jumlah) { setXp(prev => prev + Math.max(0, jumlah)) }
+
+  // ── Karyawan ─────────────────────────────────────────────────────
   function sewaKaryawan(level) {
     if (karyawanSesi.length >= MAX_KARYAWAN) return false
-    const harga = getHargaKaryawan(level, runKe)
-    if (budgetProduksi - harga < 0) return false  // tidak cukup budget
+    const k     = karyawanList.find(k => k.level === level)
+    const harga = k ? Math.round(k.hargaDasar * Math.pow(k.inflasiRate ?? INFLASI_RATE, runKe)) : 0
+    if (budgetProduksi - harga < 0) return false
     setKaryawanSesi(prev => [...prev, level])
     return true
   }
@@ -97,40 +158,41 @@ export function GameProvider({ children }) {
     setKaryawanSesi(prev => prev.filter((_, i) => i !== index))
   }
 
-  // ── Game Actions ────────────────────────────────────────────────
+  // ── Game Phase ───────────────────────────────────────────────────
   function setGamePhase(phase) { setGamePhaseRaw(phase) }
 
-  function tambahXP(jumlah) { setXp(prev => prev + Math.max(0, jumlah)) }
-
+  // ── Produk ───────────────────────────────────────────────────────
   function addProdukTerpilih(produk) {
-    // 🟢 HANYA SIMPAN KE MEMORI SEMENTARA (SESI SAAT INI)
     setPilihIds  (prev => prev.includes(produk.id) ? prev : [...prev, produk.id])
     setSelesaiIds(prev => prev.includes(produk.id) ? prev : [...prev, produk.id])
   }
 
-  function startNewSession() {
-    const now = Date.now()
+  // ── Start Session ────────────────────────────────────────────────
+  async function startNewSession() {
     setXp(0)
     setPilihIds([])
     setSelesaiIds([])
     setGamePhaseRaw(null)
-    setSessionStart(now)
-    setKaryawanSesi([])   // reset karyawan tiap sesi
+    setSessionStart(Date.now())
+    setKaryawanSesi([])
+
+    
   }
 
-  function addRunResult({ produkA, produkB, pendapatan, xpRun }) {
+  // ── Add Run Result ────────────────────────────────────────────────
+  async function addRunResult({ produkA, produkB, pendapatan, xpRun, optimal }) {
     const biayaKaryawan = hitungBiayaKaryawan(karyawanSesi, runKe)
     const waktuBermain  = sessionStart
       ? Math.floor((Date.now() - sessionStart) / 1000)
       : 0
 
     const runData = {
-      run:           runHistory.length + 1,
-      produkA:       produkA.nama,
-      produkB:       produkB.nama,
-      emojiA:        produkA.emoji,
-      emojiB:        produkB.emoji,
-      budgetAwal:    budget,
+      run:            runHistory.length + 1,
+      produkA:        produkA.nama,
+      produkB:        produkB.nama,
+      imageA:         produkA.image,
+      imageB:         produkB.image,
+      budgetAwal:     budget,
       biayaKaryawan,
       budgetProduksi: budget - biayaKaryawan,
       pendapatan,
@@ -140,20 +202,60 @@ export function GameProvider({ children }) {
       karyawanDisewa: [...karyawanSesi],
     }
 
+    if (user) {
+      try {
+        // ← Ambil kelas_id siswa dulu
+        const { fetchKelasIdSiswa } = await import('../lib/game')
+        const kelasId = await fetchKelasIdSiswa(user.id)
+
+        const sesi = await createSesi({
+          siswaId:    user.id,
+          kelasId,           // ← sekarang terisi
+          budgetAwal: budget,
+        })
+
+        await createRun({
+          sesiId:            sesi.id,
+          runKe:             runHistory.length + 1,
+          produkADbId:       produkA.dbId,
+          produkBDbId:       produkB.dbId,
+          karyawanDisewa:    karyawanSesi,
+          biayaKaryawan,
+          budgetProduksi:    budget - biayaKaryawan,
+          waktuTersedia,
+          batchA:            optimal?.batchA ?? 0,
+          batchB:            optimal?.batchB ?? 0,
+          pendapatan,
+          pendapatanOptimal: optimal?.revenue ?? 0,
+          batchOptimalA:     optimal?.x ?? 0,
+          batchOptimalB:     optimal?.y ?? 0,
+          xpRun,
+          waktuBermain,
+        })
+
+        await updateSesi(sesi.id, {
+          totalXp:         totalXp + xpRun,
+          totalPendapatan: totalPendapatan + pendapatan,
+          jumlahRun:       runHistory.length + 1,
+          status:          'selesai',
+        })
+      } catch (err) {
+        console.error('Gagal simpan run:', err)
+      }
+    }
+
     setRunHistory(prev => [...prev, runData])
     setBudget(prev => prev - biayaKaryawan + pendapatan)
-    
-    // 🟢 KUNCI PRODUK SECARA PERMANEN KARENA RUN SUDAH SELESAI DENGAN SAH
     setAllDoneIds(prev => {
       const idsBaru = produkTerpilih.map(p => p.id)
       return [...new Set([...prev, ...idsBaru])]
     })
-
     setKaryawanSesi([])
     setSessionStart(null)
     setXp(0)
   }
 
+  // ── Reset ─────────────────────────────────────────────────────────
   function resetAll() {
     setXp(0)
     setPilihIds([])
@@ -164,33 +266,53 @@ export function GameProvider({ children }) {
     setRunHistory([])
     setSessionStart(null)
     setKaryawanSesi([])
-    Object.values(LS).forEach(k => {
-      if (k !== LS.USER) {
-        localStorage.removeItem(k)
-      }
-    })
+    Object.values(LS).forEach(k => localStorage.removeItem(k))
   }
 
-  function login(u)  { setUser(u) }
-  function logout()  { setUser(null) }
-
-  const totalXp           = runHistory.reduce((s, r) => s + r.xpRun, 0)
-  const reviewUnlocked    = allDoneIds.length >= produkList.length
-  const totalPendapatan   = runHistory.reduce((s, r) => s + r.pendapatan, 0)
-  const totalWaktuBermain = runHistory.reduce((s, r) => s + r.waktuBermain, 0)
+  // ── Auth Actions ──────────────────────────────────────────────────
+  async function logout() {
+    await supabaseLogout()
+    setUser(null)
+    setXp(0)
+    setPilihIds([])
+    setSelesaiIds([])
+    setGamePhaseRaw(null)
+    setKaryawanSesi([])
+    setSessionStart(null)
+  }
 
   return (
     <GameContext.Provider value={{
+      // Auth
+      user, authLoading, logout,
+
+      // Data
+      produkList, karyawanList, dataLoading,
+
+      // XP
       xp, totalXp, tambahXP,
-      user, login, logout,
+
+      // Produk
       produkTerpilih, pilihIds, selesaiIds, allDoneIds,
-      addProdukTerpilih, startNewSession, resetAll,
+      addProdukTerpilih,
+
+      // Session
+      startNewSession, resetAll,
       gamePhase, setGamePhase,
+
+      // Budget & Waktu
       budget, budgetProduksi, waktuTersedia,
-      karyawanSesi, sewaKaryawan, lepasKaryawan,
+
+      // Karyawan
+      karyawanList, karyawanSesi, sewaKaryawan, lepasKaryawan,
+
+      // Run
       runHistory, runKe, addRunResult,
+
+      // Stats
       reviewUnlocked,
-      totalPendapatan, totalWaktuBermain,
+      totalPendapatan,
+      totalWaktuBermain,
     }}>
       {children}
     </GameContext.Provider>

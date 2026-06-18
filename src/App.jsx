@@ -1,42 +1,97 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import Layout from './components/Layout'
-import LandingPage from './pages/LandingPage'
-import LoginPage from './pages/LoginPage'
-import RancanganUsahaPage from './pages/eksplorasi/RancanganUsahaPage'
-import DapurProduksiPage from './pages/eksplorasi/DapurProduksiPage'
-import BertemuPembeli from './pages/eksplorasi/BertemuPembeli'
-import ReviewPage from './pages/ReviewPage'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { useGame } from './context/GameContext'
 
-function App() {
+import LoginPage          from './pages/LoginPage'
+import GameHubPage        from './pages/GameHubPage'
+import ReviewPage         from './pages/ReviewPage'
+
+import RancanganUsahaPage from './pages/eksplorasi/RancanganUsahaPage'
+import DapurProduksiPage  from './pages/eksplorasi/DapurProduksiPage'
+import BertemuPembeli     from './pages/eksplorasi/BertemuPembeli'
+
+import DashboardGuruPage from './pages/guru/DashboardGuruPage'
+import DetailKelasPage   from './pages/guru/DetailKelasPage'
+import DetailSiswaPage   from './pages/guru/DetailSiswaPage'
+
+// ── Guard untuk halaman yang butuh login ─────────────────────────
+function RequireAuth({ children, allowedRole }) {
+  const { user, authLoading } = useGame()
+
+  if (authLoading) return <LoadingScreen />
+  if (!user) return <Navigate to="/" replace />
+  if (allowedRole && user.role !== allowedRole) return <Navigate to="/" replace />
+
+  return children
+}
+
+// ── Loading Screen ────────────────────────────────────────────────
+function LoadingScreen() {
   return (
-    <BrowserRouter>
-      <Layout>
-        <Routes>
-          <Route path="/"                element={<LandingPage />} />
-          <Route path="/login"           element={<LoginPage />} />
-          <Route path="/eksplorasi/rancangan-usaha"    element={<RancanganUsahaPage />} />
-          <Route path="/eksplorasi/dapur-produksi"     element={<DapurProduksiPage />} />
-          <Route path="/eksplorasi/bertemu-pembeli"    element={<BertemuPembeli />} />
-          <Route path="/review"          element={<ReviewPage />} />
-          <Route path="/dashboard-guru"  element={<PlaceholderPage judul="📚 Dashboard Guru" pesan="Dashboard guru sedang dikembangkan." />} />
-          <Route path="*"               element={<PlaceholderPage judul="404" pesan="Halaman tidak ditemukan." />} />
-        </Routes>
-      </Layout>
-    </BrowserRouter>
+    <div style={{
+      height: '100dvh', display: 'flex',
+      alignItems: 'center', justifyContent: 'center',
+      backgroundColor: '#FDFBE4'
+    }}>
+      <div className="text-center">
+        <img src="/assets/maskot.png" alt="maskot"
+          style={{ width: '6rem', height: '6rem',
+                   objectFit: 'contain', marginBottom: '1rem' }} />
+        <p className="font-bold text-gray-400">Memuat...</p>
+      </div>
+    </div>
   )
 }
 
-function PlaceholderPage({ judul, pesan }) {
+// ── Root Route — smart berdasarkan auth state ─────────────────────
+function RootRoute() {
+  const { user, authLoading } = useGame()
+
+  if (authLoading) return <LoadingScreen />
+  if (!user) return <LoginPage />
+  if (user.role === 'guru') return <Navigate to="/dashboard-guru" replace />
+  return <GameHubPage />
+}
+
+function App() {
+  const { dataLoading } = useGame()
+
+  if (dataLoading) return <LoadingScreen />
+
   return (
-    <div className="flex-1 flex flex-col items-center justify-center px-4"
-      style={{ backgroundColor: '#FDFBE4' }}>
-      <h1 className="text-3xl font-black mb-2" style={{ color: '#C0392B' }}>{judul}</h1>
-      <p className="text-gray-500 font-semibold mb-6 text-center">{pesan}</p>
-      <a href="/" className="py-3 px-8 rounded-2xl text-white font-bold"
-        style={{ backgroundColor: '#1E8449' }}>
-        Kembali ke Menu
-      </a>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        {/* Root — smart route */}
+        <Route path="/" element={<RootRoute />} />
+
+        {/* Siswa */}
+        <Route path="/review" element={
+          <RequireAuth allowedRole="siswa"><ReviewPage /></RequireAuth>
+        } />
+        <Route path="/eksplorasi/rancangan-usaha" element={
+          <RequireAuth allowedRole="siswa"><RancanganUsahaPage /></RequireAuth>
+        } />
+        <Route path="/eksplorasi/dapur-produksi" element={
+          <RequireAuth allowedRole="siswa"><DapurProduksiPage /></RequireAuth>
+        } />
+        <Route path="/eksplorasi/bertemu-pembeli" element={
+          <RequireAuth allowedRole="siswa"><BertemuPembeli /></RequireAuth>
+        } />
+
+        {/* Guru */}
+        <Route path="/dashboard-guru" element={
+          <RequireAuth allowedRole="guru"><DashboardGuruPage /></RequireAuth>
+        } />
+        <Route path="/dashboard-guru/kelas/:id" element={
+          <RequireAuth allowedRole="guru"><DetailKelasPage /></RequireAuth>
+        } />
+        <Route path="/dashboard-guru/kelas/:kelasId/siswa/:siswaId" element={
+          <RequireAuth allowedRole="guru"><DetailSiswaPage /></RequireAuth>
+        } />
+
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   )
 }
 

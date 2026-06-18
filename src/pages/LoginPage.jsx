@@ -1,135 +1,320 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useGame } from '../context/GameContext'
-import imgMaskot from '../assets/maskot.png'
+import { login, registerSiswa, registerGuru } from '../lib/auth'
 
-const STRIPE_ATAS  = 'repeating-linear-gradient(90deg,#C0392B 0,#C0392B 20px,#F1C40F 20px,#F1C40F 40px,#1E8449 40px,#1E8449 60px)'
-const STRIPE_BAWAH = 'repeating-linear-gradient(90deg,#1E8449 0,#1E8449 20px,#F1C40F 20px,#F1C40F 40px,#C0392B 40px,#C0392B 60px)'
+function parseError(message) {
+  if (message.includes('Invalid login credentials'))
+    return 'Email atau password salah.'
+  if (message.includes('Email not confirmed'))
+    return 'Email belum dikonfirmasi.'
+  if (message.includes('User already registered'))
+    return 'Email ini sudah terdaftar.'
+  if (message.includes('Password should be'))
+    return 'Password minimal 6 karakter.'
+  if (message.includes('Kode kelas tidak ditemukan'))
+    return 'Kode kelas tidak valid.'
+  return message
+}
 
 function LoginPage() {
-  const navigate = useNavigate()
-  const { login } = useGame()
+  const { login: loginCtx } = useGame()
 
-  const [role,     setRole]     = useState('siswa')
-  const [email,    setEmail]    = useState('')
-  const [password, setPassword] = useState('')
-  const [error,    setError]    = useState('')
-  const [loading,  setLoading]  = useState(false)
+  const [mode,      setMode]      = useState('login')
+  const [role,      setRole]      = useState('siswa')
+  const [email,     setEmail]     = useState('')
+  const [password,  setPassword]  = useState('')
+  const [nama,      setNama]      = useState('')
+  const [kodeKelas, setKodeKelas] = useState('')
+  const [showPass,  setShowPass]  = useState(false)
+  const [error,     setError]     = useState('')
+  const [loading,   setLoading]   = useState(false)
+  const [sukses,    setSukses]    = useState('')
 
-  const akunDemo = {
-    siswa: { email: 'siswa@demo.com', password: 'siswa123' },
-    guru:  { email: 'guru@demo.com',  password: 'guru123'  }
-  }
-
-  function handleLogin() {
+  async function handleLogin() {
     setError('')
-    if (!email || !password) { setError('Email dan password tidak boleh kosong.'); return }
+    if (!email || !password) { setError('Email dan password wajib diisi.'); return }
     setLoading(true)
-    setTimeout(() => {
-      const akun = akunDemo[role]
-      if (email === akun.email && password === akun.password) {
-        login({ email, role })
-        navigate(role === 'siswa' ? '/' : '/dashboard-guru')
-      } else {
-        setError('Email atau password salah. Coba lagi.')
-      }
+    try {
+      await login({ email, password })
+      // Redirect dihandle otomatis oleh RootRoute di App.jsx
+    } catch (err) {
+      setError(parseError(err.message))
+    } finally {
       setLoading(false)
-    }, 800)
+    }
   }
 
-  return (
-    <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column' }}>
+  async function handleRegister() {
+    setError('')
+    if (!nama || !email || !password) { setError('Semua kolom wajib diisi.'); return }
+    if (password.length < 6) { setError('Password minimal 6 karakter.'); return }
+    if (role === 'siswa' && !kodeKelas) { setError('Kode kelas wajib diisi.'); return }
+    setLoading(true)
+    try {
+      if (role === 'siswa') {
+        await registerSiswa({ email, password, namaLengkap: nama,
+                               kodeKelas: kodeKelas.trim().toUpperCase() })
+      } else {
+        await registerGuru({ email, password, namaLengkap: nama })
+      }
+      setSukses('Registrasi berhasil! Silakan login.')
+      setMode('login')
+      setPassword(''); setNama(''); setKodeKelas('')
+    } catch (err) {
+      setError(parseError(err.message))
+    } finally {
+      setLoading(false)
+    }
+  }
 
-      {/* Stripe atas */}
-      <div style={{ height: 12, background: STRIPE_ATAS, flexShrink: 0 }} />
+  function switchMode(m) {
+    setMode(m); setError(''); setSukses(''); setShowPass(false)
+  }
 
-      {/* Konten tengah */}
-      <div className="flex-1 flex flex-col items-center justify-center px-4 md:px-8"
-        style={{ backgroundColor: '#FDFBE4', overflowY: 'auto' }}>
+  // ── Form Section ──────────────────────────────────────────────────
+  const FormSection = (
+    <div className="w-full max-w-sm mx-auto flex flex-col gap-4">
 
-        {/* Header */}
-        <div className="text-center mb-6">
-          <img 
-            src={imgMaskot} 
-            alt="Maskot Koki The Great Riau" 
-            className="w-24 h-24 md:w-28 md:h-28 mx-auto mb-3 object-contain drop-shadow-md" 
-          />
-          <h1 className="text-2xl font-black" style={{ color: '#C0392B' }}>
-            The Great Riau
-          </h1>
-          <p className="text-gray-500 font-semibold">Masuk ke akunmu</p>
-        </div>
+      {/* Toggle Login/Register */}
+      <div className="flex rounded-2xl overflow-hidden"
+        style={{ border: '2px solid #ddd' }}>
+        {['login', 'register'].map(m => (
+          <button key={m} onClick={() => switchMode(m)}
+            className="flex-1 py-3 font-bold text-sm transition-colors"
+            style={{
+              backgroundColor: mode === m ? '#C0392B' : 'white',
+              color: mode === m ? 'white' : '#333',
+              border: 'none', cursor: 'pointer'
+            }}>
+            {m === 'login' ? '🔑 Masuk' : '📝 Daftar'}
+          </button>
+        ))}
+      </div>
 
-        {/* Card */}
-        <div className="bg-white rounded-3xl p-6 md:p-10 w-full max-w-sm md:max-w-md shadow-lg">
+      {/* Card */}
+      <div className="bg-white rounded-3xl p-5 shadow-lg">
 
-          {/* Toggle Role */}
-          <div className="flex rounded-2xl overflow-hidden mb-5"
+        {/* Toggle Role — register saja */}
+        {mode === 'register' && (
+          <div className="flex rounded-2xl overflow-hidden mb-4"
             style={{ border: '2px solid #ddd' }}>
             {['siswa', 'guru'].map(r => (
-              <button key={r} onClick={() => setRole(r)}
-                className="flex-1 py-3 font-bold text-sm transition-colors"
+              <button key={r} onClick={() => { setRole(r); setError('') }}
+                className="flex-1 py-2 font-bold text-sm transition-colors"
                 style={{
-                  backgroundColor: role === r ? (r === 'siswa' ? '#C0392B' : '#1E8449') : 'white',
-                  color: role === r ? 'white' : '#333'
+                  backgroundColor: role === r
+                    ? (r === 'siswa' ? '#C0392B' : '#1E8449') : 'white',
+                  color: role === r ? 'white' : '#333',
+                  border: 'none', cursor: 'pointer'
                 }}>
                 {r === 'siswa' ? '🎒 Siswa' : '📚 Guru'}
               </button>
             ))}
           </div>
+        )}
 
-          {/* Hint demo */}
-          <div className="mb-4 p-3 rounded-2xl text-xs font-semibold text-center"
-            style={{ backgroundColor: '#FEF9E7', color: '#666' }}>
-            Demo: <span className="font-black">{akunDemo[role].email}</span>
-            {' / '}
-            <span className="font-black">{akunDemo[role].password}</span>
-          </div>
-
-          {/* Email */}
-          <div className="mb-4">
-            <label className="block text-sm font-bold mb-1">Email</label>
-            <input type="email" value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="masukkan email..."
+        {/* Nama */}
+        {mode === 'register' && (
+          <div className="mb-3">
+            <label className="block text-sm font-bold mb-1">Nama Lengkap</label>
+            <input type="text" value={nama}
+              onChange={e => setNama(e.target.value)}
+              placeholder="masukkan nama lengkap..."
               className="w-full px-4 py-3 rounded-2xl text-sm font-semibold outline-none"
               style={{ border: '2px solid #ddd', backgroundColor: '#FAFAFA' }} />
           </div>
+        )}
 
-          {/* Password */}
-          <div className="mb-4">
-            <label className="block text-sm font-bold mb-1">Password</label>
-            <input type="password" value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="masukkan password..."
-              onKeyDown={e => e.key === 'Enter' && handleLogin()}
-              className="w-full px-4 py-3 rounded-2xl text-sm font-semibold outline-none"
+        {/* Kode Kelas — siswa register saja */}
+        {mode === 'register' && role === 'siswa' && (
+          <div className="mb-3">
+            <label className="block text-sm font-bold mb-1">Kode Kelas</label>
+            <input type="text" value={kodeKelas}
+              onChange={e => setKodeKelas(e.target.value.toUpperCase())}
+              placeholder="contoh: ABC123"
+              maxLength={6}
+              className="w-full px-4 py-3 rounded-2xl text-sm font-semibold
+                         outline-none tracking-widest"
               style={{ border: '2px solid #ddd', backgroundColor: '#FAFAFA' }} />
+            <p className="text-xs text-gray-400 font-semibold mt-1">
+              Minta kode kelas dari gurumu
+            </p>
           </div>
+        )}
 
-          {error && (
-            <div className="mb-4 p-3 rounded-2xl text-sm font-bold text-center"
-              style={{ backgroundColor: '#FADBD8', color: '#C0392B' }}>
-              {error}
-            </div>
-          )}
-
-          <button onClick={handleLogin} disabled={loading}
-            className="w-full py-4 rounded-2xl text-white font-black text-lg
-                       active:scale-95 transition-transform disabled:opacity-60"
-            style={{ backgroundColor: role === 'siswa' ? '#C0392B' : '#1E8449' }}>
-            {loading ? '⏳ Memuat...' : 'Masuk'}
-          </button>
+        {/* Email */}
+        <div className="mb-3">
+          <label className="block text-sm font-bold mb-1">Email</label>
+          <input type="email" value={email}
+            onChange={e => setEmail(e.target.value)}
+            placeholder="masukkan email..."
+            className="w-full px-4 py-3 rounded-2xl text-sm font-semibold outline-none"
+            style={{ border: '2px solid #ddd', backgroundColor: '#FAFAFA' }} />
         </div>
 
-        <button onClick={() => navigate('/')}
-          className="mt-5 text-sm font-bold" style={{ color: '#666' }}>
-          ← Kembali ke Menu
+        {/* Password */}
+        <div className="mb-4">
+          <label className="block text-sm font-bold mb-1">Password</label>
+          <div className="relative">
+            <input
+              type={showPass ? 'text' : 'password'}
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder="masukkan password..."
+              onKeyDown={e => e.key === 'Enter' &&
+                (mode === 'login' ? handleLogin() : handleRegister())}
+              className="w-full px-4 py-3 rounded-2xl text-sm font-semibold
+                         outline-none pr-12"
+              style={{ border: '2px solid #ddd', backgroundColor: '#FAFAFA' }} />
+            <button type="button"
+              onClick={() => setShowPass(p => !p)}
+              style={{
+                position: 'absolute', right: '0.75rem', top: '50%',
+                transform: 'translateY(-50%)',
+                background: 'none', border: 'none',
+                cursor: 'pointer', color: '#aaa',
+                display: 'flex', alignItems: 'center'
+              }}>
+              {showPass ? (
+                // Ikon "sembunyikan" — mata dengan garis coret
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                  viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8
+                          a18.45 18.45 0 0 1 5.06-5.94"/>
+                  <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8
+                          a18.5 18.5 0 0 1-2.16 3.19"/>
+                  <line x1="1" y1="1" x2="23" y2="23"/>
+                </svg>
+              ) : (
+                // Ikon "tampilkan" — mata normal
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                  viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Error & Sukses */}
+        {error && (
+          <div className="mb-3 p-3 rounded-2xl text-sm font-bold text-center"
+            style={{ backgroundColor: '#FADBD8', color: '#C0392B' }}>
+            {error}
+          </div>
+        )}
+        {sukses && (
+          <div className="mb-3 p-3 rounded-2xl text-sm font-bold text-center"
+            style={{ backgroundColor: '#D5F5E3', color: '#1E8449' }}>
+            {sukses}
+          </div>
+        )}
+
+        {/* Tombol Submit */}
+        <button
+          onClick={mode === 'login' ? handleLogin : handleRegister}
+          disabled={loading}
+          className="w-full py-4 rounded-2xl text-white font-black text-lg
+                     active:scale-95 transition-transform disabled:opacity-60"
+          style={{
+            backgroundColor: mode === 'register' && role === 'guru'
+              ? '#1E8449' : '#C0392B',
+            border: 'none', cursor: 'pointer'
+          }}>
+          {loading ? '⏳ Memuat...' : mode === 'login' ? 'Masuk' : 'Daftar'}
         </button>
       </div>
+    </div>
+  )
 
-      {/* Stripe bawah */}
-      <div style={{ height: 12, background: STRIPE_BAWAH, flexShrink: 0 }} />
+  // ── Main Render ───────────────────────────────────────────────────
+  return (
+    <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column',
+                  backgroundColor: '#FDFBE4' }}>
+
+      {/* ── Desktop: Split Screen ── */}
+      <div className="hidden md:flex flex-1 overflow-hidden">
+
+        {/* Kiri — Branding */}
+        <div className="w-2/5 flex flex-col items-center justify-center px-8"
+          style={{ backgroundColor: '#C0392B' }}>
+          <img src="/assets/maskot.png" alt="maskot"
+            style={{ width: '12rem', height: '12rem',
+                     objectFit: 'contain', marginBottom: '1.5rem',
+                     filter: 'drop-shadow(0 8px 24px rgba(0,0,0,0.25))' }} />
+          <h1 style={{ fontSize: '2.5rem', fontWeight: 900,
+                       color: 'white', textAlign: 'center',
+                       marginBottom: '0.25rem' }}>
+            The Great Riau
+          </h1>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 700,
+                       color: '#F1C40F', textAlign: 'center',
+                       marginBottom: '1rem' }}>
+            Math-Biz Mania
+          </h2>
+          <div style={{
+            width: '8rem', height: '0.5rem', borderRadius: '9999px',
+            background: 'repeating-linear-gradient(90deg,#F1C40F 0,#F1C40F 12px,white 12px,white 24px)'
+          }} />
+          <p style={{ marginTop: '1.5rem', color: 'rgba(255,255,255,0.8)',
+                      fontWeight: 600, textAlign: 'center',
+                      fontSize: '0.9rem', lineHeight: 1.6,
+                      maxWidth: '18rem' }}>
+            Jadilah Pengusaha Kue Tradisional Riau! Asah kemampuan matematikamu
+            sambil membangun usaha yang menguntungkan.
+          </p>
+        </div>
+
+        {/* Kanan — Form */}
+        <div className="flex-1 flex flex-col items-center justify-center px-8 overflow-y-auto">
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 900,
+                       color: '#333', marginBottom: '1.5rem' }}>
+            {mode === 'login' ? 'Masuk ke Akunmu' : 'Buat Akun Baru'}
+          </h2>
+          {FormSection}
+        </div>
+      </div>
+
+      {/* ── Mobile: Stack ── */}
+      <div className="md:hidden flex flex-col flex-1 overflow-y-auto">
+
+        {/* Stripe atas */}
+        <div style={{
+          height: 12, flexShrink: 0,
+          background: 'repeating-linear-gradient(90deg,#C0392B 0,#C0392B 20px,#F1C40F 20px,#F1C40F 40px,#1E8449 40px,#1E8449 60px)'
+        }} />
+
+        {/* Header mobile */}
+        <div className="flex flex-col items-center pt-6 pb-4 px-4"
+          style={{ backgroundColor: '#C0392B' }}>
+          <img src="/assets/maskot.png" alt="maskot"
+            style={{ width: '6rem', height: '6rem',
+                     objectFit: 'contain', marginBottom: '0.75rem' }} />
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 900,
+                       color: 'white', textAlign: 'center' }}>
+            The Great Riau
+          </h1>
+          <h2 style={{ fontSize: '1rem', fontWeight: 700,
+                       color: '#F1C40F', textAlign: 'center' }}>
+            Math-Biz Mania
+          </h2>
+        </div>
+
+        {/* Form mobile */}
+        <div className="flex-1 px-4 py-6"
+          style={{ backgroundColor: '#FDFBE4' }}>
+          {FormSection}
+        </div>
+
+        {/* Stripe bawah */}
+        <div style={{
+          height: 12, flexShrink: 0,
+          background: 'repeating-linear-gradient(90deg,#1E8449 0,#1E8449 20px,#F1C40F 20px,#F1C40F 40px,#C0392B 40px,#C0392B 60px)'
+        }} />
+      </div>
 
     </div>
   )

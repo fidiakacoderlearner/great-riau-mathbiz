@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react'
 
-// 1. Ubah parameter 'emoji' menjadi 'image'
 function TransisiPage({ judul, image, warna, onLanjut }) {
   const [progress, setProgress] = useState(0)
 
-  // 1. useEffect PERTAMA: Khusus untuk mengatur animasi progress bar
   useEffect(() => {
     const durasi    = 4000
     const tick      = 50
