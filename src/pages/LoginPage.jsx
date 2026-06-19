@@ -281,12 +281,6 @@ function LoginPage() {
       {/* ── Mobile: Stack ── */}
       <div className="md:hidden flex flex-col flex-1 overflow-y-auto">
 
-        {/* Stripe atas */}
-        <div style={{
-          height: 12, flexShrink: 0,
-          background: 'repeating-linear-gradient(90deg,#C0392B 0,#C0392B 20px,#F1C40F 20px,#F1C40F 40px,#1E8449 40px,#1E8449 60px)'
-        }} />
-
         {/* Header mobile */}
         <div className="flex flex-col items-center pt-6 pb-4 px-4"
           style={{ backgroundColor: '#C0392B' }}>
@@ -309,11 +303,6 @@ function LoginPage() {
           {FormSection}
         </div>
 
-        {/* Stripe bawah */}
-        <div style={{
-          height: 12, flexShrink: 0,
-          background: 'repeating-linear-gradient(90deg,#1E8449 0,#1E8449 20px,#F1C40F 20px,#F1C40F 40px,#C0392B 40px,#C0392B 60px)'
-        }} />
       </div>
 
     </div>
