@@ -332,7 +332,8 @@ function BertemuPembeli() {
       produkA,
       produkB,
       pendapatan,
-      xpRun: xp
+      xpRun: xp,
+      optimal,
     })
     setGamePhase(null)
     navigate('/')

@@ -223,7 +223,7 @@ function DetailSiswaPage() {
         }, 0) / semuaRun.length
       )
   const konsistensiScore = semuaRun.length === 0 ? 0
-    : semuaRun.length === 1 ? 50
+    : semuaRun.length === 1 ? 100  
     : (() => {
         const xpArr  = semuaRun.map(r => r.xp_run ?? 0)
         const avg    = xpArr.reduce((a, b) => a + b, 0) / xpArr.length
