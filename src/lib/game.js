@@ -306,8 +306,8 @@ export async function fetchKelasIdSiswa(siswaId) {
 }
 
 // ── Load Progress Siswa dari Supabase ─────────────────────────────
-export async function fetchGameProgress(siswaId) {
-  const { data: sesiList, error } = await supabase
+export async function fetchGameProgress(siswaId, resetAt = null) {
+  let query = supabase
     .from('sesi_bermain')
     .select(`
       *,
@@ -321,13 +321,18 @@ export async function fetchGameProgress(siswaId) {
     .eq('status', 'selesai')
     .order('started_at', { ascending: true })
 
+  // Kalau ada timestamp reset, hanya ambil sesi setelah reset
+  if (resetAt) {
+    query = query.gte('started_at', new Date(resetAt).toISOString())
+  }
+
+  const { data: sesiList, error } = await query
   if (error) throw error
 
   const semuaRun = sesiList
     .flatMap(s => s.run ?? [])
     .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
 
-  // Rekonstruksi allDoneIds dari produk yang sudah dikerjakan
   const allDoneIds = [...new Set(
     semuaRun.flatMap(r => [
       r.produk_a?.slug,
@@ -335,14 +340,12 @@ export async function fetchGameProgress(siswaId) {
     ].filter(Boolean))
   )]
 
-  // Hitung budget saat ini
   const BUDGET_AWAL = 600000
   let budget = BUDGET_AWAL
   for (const run of semuaRun) {
     budget = budget - (run.biaya_karyawan ?? 0) + (run.pendapatan ?? 0)
   }
 
-  // Rekonstruksi runHistory untuk ReviewPage
   const runHistory = semuaRun.map((r, i) => ({
     run:            i + 1,
     produkA:        r.produk_a?.nama ?? '',

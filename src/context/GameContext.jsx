@@ -22,6 +22,7 @@ const LS = {
   BUDGET:        'griau_budget',
   RUN_HISTORY:   'griau_run_history',
   SESSION_START: 'griau_session_start',
+  RESET_AT:      'griau_reset_at',
 }
 
 function safeLoad(key, fallback) {
@@ -64,7 +65,12 @@ export function GameProvider({ children }) {
         if (userData.role === 'siswa') {
           try {
             const { fetchGameProgress } = await import('../lib/game')
-            const progress = await fetchGameProgress(userData.id)
+
+            const resetAt = localStorage.getItem(LS.RESET_AT)
+            const progress = await fetchGameProgress(
+              userData.id, 
+              resetAt ? parseInt(resetAt) : null
+            )
             setAllDoneIds(progress.allDoneIds)
             setBudget(progress.budget)
             setRunHistory(progress.runHistory)
@@ -294,7 +300,13 @@ export function GameProvider({ children }) {
     setRunHistory([])
     setSessionStart(null)
     setKaryawanSesi([])
-    Object.values(LS).forEach(k => localStorage.removeItem(k))
+    // Hapus semua LS kecuali RESET_AT
+    Object.entries(LS).forEach(([key, value]) => {
+      if (key !== 'RESET_AT') localStorage.removeItem(value)
+    })
+
+    // Set timestamp reset sekarang
+    localStorage.setItem(LS.RESET_AT, Date.now().toString())
   }
 
   // ── Auth Actions ──────────────────────────────────────────────────
