@@ -21,7 +21,7 @@ function SlotBox({ nilai, onClick, disabled }) {
 }
 
 function PertidaksamaanCard({ soal, onSelesai }) {
-  const { tambahXP } = useGame()
+  const { tambahXP, catatJawaban } = useGame()
 
   // Ref — selalu baca nilai terbaru
   const hintRef     = useRef(false)
@@ -99,15 +99,47 @@ function PertidaksamaanCard({ soal, onSelesai }) {
       setTimeout(() => setShowFeedback(false), 1500)
       return
     }
+
+    const waktuMenjawab = Math.floor((Date.now() - waktuMulai.current) / 1000)
+    const percobaanKe   = XP_CONFIG.maxAttempts - percobaan + 1
+    const tipeSoal      = soal.id === 'waktu' ? 'pertidaksamaan_waktu' : 'pertidaksamaan_modal'
     const benar = Object.keys(soal.jawaban).every(k => slots[k] === soal.jawaban[k])
+
     if (benar) {
       setSudahBenar(true)
-      tambahXP(hitungXP())
+      const xpDapat = hitungXP()
+      tambahXP(xpDapat)
+
+      // ← catat jawaban benar
+      catatJawaban({
+        produkDbId:    null,
+        tipeSoal,
+        jawabanBenar:  true,
+        percobaanKe,
+        hintDipakai:   hintRef.current,
+        waktuMenjawab,
+        xpDiperoleh:   xpDapat,
+      })
+
       tampilkanFeedback(true, percobaan, 'Keren, pertidaksamaanmu tepat sekali!')
     } else {
-      firstTryRef.current = false  // ← ref langsung diupdate
+      firstTryRef.current = false
       const sisa = percobaan - 1
       setPercobaan(sisa)
+
+      // ← catat jawaban salah saat percobaan habis
+      if (sisa === 0) {
+        catatJawaban({
+          produkDbId:    null,
+          tipeSoal,
+          jawabanBenar:  false,
+          percobaanKe:   XP_CONFIG.maxAttempts,
+          hintDipakai:   hintRef.current,
+          waktuMenjawab,
+          xpDiperoleh:   0,
+        })
+      }
+
       tampilkanFeedback(false, sisa, 'Hmm, belum pas! Coba lagi!')
     }
   }
