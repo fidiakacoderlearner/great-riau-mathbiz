@@ -34,7 +34,7 @@ function safeLoad(key, fallback) {
 
 export function GameProvider({ children }) {
   // ── Auth ─────────────────────────────────────────────────────────
-  const [user,        setUser]        = useState(null)
+  const [user,      setUser]        = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
 
   // ── Master Data dari Supabase ─────────────────────────────────────
@@ -47,7 +47,7 @@ export function GameProvider({ children }) {
   const [pilihIds,     setPilihIds]     = useState(() => safeLoad(LS.PILIH_IDS,    []))
   const [selesaiIds,   setSelesaiIds]   = useState(() => safeLoad(LS.SELESAI_IDS,  []))
   const [allDoneIds,   setAllDoneIds]   = useState(() => safeLoad(LS.ALL_DONE,     []))
-  const [gamePhase,    setGamePhaseRaw] = useState(() => safeLoad(LS.PHASE,        null))
+  const [gamePhase,     setGamePhaseRaw] = useState(() => safeLoad(LS.PHASE,        null))
   const [budget,       setBudget]       = useState(() => safeLoad(LS.BUDGET,       BUDGET_AWAL))
   const [runHistory,   setRunHistory]   = useState(() => safeLoad(LS.RUN_HISTORY,  []))
   const [sessionStart, setSessionStart] = useState(() => safeLoad(LS.SESSION_START, null))
@@ -60,11 +60,9 @@ export function GameProvider({ children }) {
   // ── Load Auth ─────────────────────────────────────────────────────
   useEffect(() => {
     const { data: { subscription } } = onAuthStateChange(async (userData) => {
-
       if (userData) {
         console.log('User login:', userData.email, '| Role:', userData.role)
 
-        // Hanya load progress kalau role-nya siswa
         if (userData.role === 'siswa') {
           try {
             const { fetchGameProgress } = await import('../lib/game')
@@ -73,14 +71,12 @@ export function GameProvider({ children }) {
             setAllDoneIds(progress.allDoneIds)
             setBudget(progress.budget)
             setRunHistory(progress.runHistory)
-            setPermainanId(progress.permainanId)  // bisa null kalau permainan sudah selesai
+            setPermainanId(progress.permainanId)
           } catch (err) {
             console.error('Gagal load progress siswa:', err)
           }
         }
-        // Guru tidak perlu load game progress
       }
-
       setUser(userData)
       setAuthLoading(false)
     })
@@ -89,7 +85,6 @@ export function GameProvider({ children }) {
 
   // ── Load Produk & Karyawan dari Supabase ─────────────────────────
   useEffect(() => {
-    // Hanya load setelah auth selesai dan user diketahui
     if (authLoading) return
 
     let cancelled = false
@@ -111,7 +106,6 @@ export function GameProvider({ children }) {
 
         if (cancelled) return
 
-        // Fallback: kalau produk kelas kosong, pakai template global
         if (produk.length === 0) {
           produk = await fetchProduk(null)
         }
@@ -132,7 +126,7 @@ export function GameProvider({ children }) {
     loadData()
 
     return () => { cancelled = true }
-  }, [user?.id])
+  }, [user?.id, authLoading])
 
   // ── Sync localStorage ────────────────────────────────────────────
   useEffect(() => { localStorage.setItem(LS.PILIH_IDS,    JSON.stringify(pilihIds))    }, [pilihIds])
@@ -214,8 +208,11 @@ export function GameProvider({ children }) {
     setGamePhaseRaw(null)
     setSessionStart(Date.now())
     setKaryawanSesi([])
+  }
 
-    
+  // ── Jawaban ──────────────────────────────────────────────────────
+  function catatJawaban(jawaban) {
+    setJawabanSementara(prev => [...prev, jawaban])
   }
 
   // ── Add Run Result ────────────────────────────────────────────────
@@ -250,7 +247,6 @@ export function GameProvider({ children }) {
 
         const kelasId = await fetchKelasIdSiswa(user.id)
 
-        // Buat permainan baru kalau belum ada (run pertama)
         let currentPermainanId = permainanId
         if (!currentPermainanId) {
           const p = await createPermainan({ siswaId: user.id, kelasId })
@@ -265,7 +261,7 @@ export function GameProvider({ children }) {
           permainanId:  currentPermainanId,
         })
 
-        await createRun({
+        const runDb = await createRun({
           sesiId:            sesi.id,
           runKe:             runHistory.length + 1,
           produkADbId:       produkA.dbId,
@@ -299,11 +295,10 @@ export function GameProvider({ children }) {
           )
         }
 
-        const newRunCount      = runHistory.length + 1
-        const newTotalXp       = totalXp + xpRun
+        const newRunCount       = runHistory.length + 1
+        const newTotalXp        = totalXp + xpRun
         const newTotalPendapatan = totalPendapatan + pendapatan
 
-        // Cek apakah permainan selesai (semua 10 produk)
         const produkBaru   = [...new Set([
           ...allDoneIds,
           ...produkTerpilih.map(p => p.id)
@@ -317,13 +312,13 @@ export function GameProvider({ children }) {
           status:          permainanSelesai ? 'selesai' : 'berjalan',
         })
 
-        // Kalau permainan selesai, hapus dari localStorage
         if (permainanSelesai) {
           setPermainanId(null)
         }
 
         await updateSesi(sesi.id, {
-          totalXp:         newTotalXp,          totalPendapatan: newTotalPendapatan,
+          totalXp:         newTotalXp,
+          totalPendapatan: newTotalPendapatan,
           jumlahRun:       newRunCount,
           status:          'selesai',
         })
@@ -341,11 +336,11 @@ export function GameProvider({ children }) {
     setKaryawanSesi([])
     setSessionStart(null)
     setXp(0)
+    setJawabanSementara([]) // Reset jawaban setelah run berhasil dicatat
   }
 
   // ── Reset ─────────────────────────────────────────────────────────
   async function resetAll() {
-    // Opsi B: hanya simpan kalau sudah ada minimal 1 run
     if (permainanId && user && runHistory.length > 0) {
       try {
         const { updatePermainan } = await import('../lib/game')
@@ -387,10 +382,6 @@ export function GameProvider({ children }) {
   }
 
   return (
-  function catatJawaban(jawaban) {
-    setJawabanSementara(prev => [...prev, jawaban])
-  }
-
     <GameContext.Provider value={{
       // Auth
       user, authLoading, logout,
