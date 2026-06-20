@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { onAuthStateChange, logout as supabaseLogout } from '../lib/auth'
 import {
-  fetchProduk, fetchKaryawan,
+  fetchProduk, fetchKaryawan, fetchKelasIdSiswa, salinProdukKeKelas,
   createSesi, updateSesi, createRun,
 } from '../lib/game'
 import {
@@ -89,22 +89,50 @@ export function GameProvider({ children }) {
 
   // ── Load Produk & Karyawan dari Supabase ─────────────────────────
   useEffect(() => {
+    // Hanya load setelah auth selesai dan user diketahui
+    if (authLoading) return
+
+    let cancelled = false
+
     async function loadData() {
       try {
-        const [produk, karyawan] = await Promise.all([
-          fetchProduk(),
-          fetchKaryawan(),
-        ])
+        let kelasId = null
+
+        if (user?.role === 'siswa' && user?.id) {
+          kelasId = await fetchKelasIdSiswa(user.id)
+          if (kelasId) {
+            await salinProdukKeKelas(kelasId)
+          }
+        }
+
+        if (cancelled) return
+
+        let produk = await fetchProduk(kelasId)
+
+        if (cancelled) return
+
+        // Fallback: kalau produk kelas kosong, pakai template global
+        if (produk.length === 0) {
+          produk = await fetchProduk(null)
+        }
+
+        const karyawan = await fetchKaryawan()
+
+        if (cancelled) return
+
         setProdukList(produk)
         setKaryawanList(karyawan)
       } catch (err) {
-        console.error('Gagal load data:', err)
+        if (!cancelled) console.error('Gagal load data:', err)
       } finally {
-        setDataLoading(false)
+        if (!cancelled) setDataLoading(false)
       }
     }
+
     loadData()
-  }, [])
+
+    return () => { cancelled = true }
+  }, [user?.id])
 
   // ── Sync localStorage ────────────────────────────────────────────
   useEffect(() => { localStorage.setItem(LS.PILIH_IDS,    JSON.stringify(pilihIds))    }, [pilihIds])
@@ -169,16 +197,6 @@ export function GameProvider({ children }) {
     setKaryawanSesi(prev => prev.filter((_, i) => i !== index))
   }
 
-  function catatJawaban({ produkDbId = null, tipeSoal,
-                          jawabanBenar, percobaanKe,
-                          hintDipakai, waktuMenjawab, xpDiperoleh }) {
-    setJawabanSementara(prev => [...prev, {
-      produkDbId, tipeSoal,
-      jawabanBenar, percobaanKe,
-      hintDipakai, waktuMenjawab, xpDiperoleh,
-    }])
-  }
-
   // ── Game Phase ───────────────────────────────────────────────────
   function setGamePhase(phase) { setGamePhaseRaw(phase) }
 
@@ -196,7 +214,8 @@ export function GameProvider({ children }) {
     setGamePhaseRaw(null)
     setSessionStart(Date.now())
     setKaryawanSesi([])
-    setJawabanSementara([])
+
+    
   }
 
   // ── Add Run Result ────────────────────────────────────────────────
@@ -246,7 +265,7 @@ export function GameProvider({ children }) {
           permainanId:  currentPermainanId,
         })
 
-        const runDb = await createRun({
+        await createRun({
           sesiId:            sesi.id,
           runKe:             runHistory.length + 1,
           produkADbId:       produkA.dbId,
@@ -304,8 +323,7 @@ export function GameProvider({ children }) {
         }
 
         await updateSesi(sesi.id, {
-          totalXp:         newTotalXp,
-          totalPendapatan: newTotalPendapatan,
+          totalXp:         newTotalXp,          totalPendapatan: newTotalPendapatan,
           jumlahRun:       newRunCount,
           status:          'selesai',
         })
@@ -313,9 +331,6 @@ export function GameProvider({ children }) {
         console.error('Gagal simpan run:', err)
       }
     }
-
-    // Reset setelah selesai
-    setJawabanSementara([])   // ← tambah ini sebelum baris setRunHistory
 
     setRunHistory(prev => [...prev, runData])
     setBudget(prev => prev - biayaKaryawan + pendapatan)
@@ -372,6 +387,10 @@ export function GameProvider({ children }) {
   }
 
   return (
+  function catatJawaban(jawaban) {
+    setJawabanSementara(prev => [...prev, jawaban])
+  }
+
     <GameContext.Provider value={{
       // Auth
       user, authLoading, logout,
@@ -381,8 +400,6 @@ export function GameProvider({ children }) {
 
       // XP
       xp, totalXp, tambahXP,
-
-      catatJawaban,
 
       // Produk
       produkTerpilih, pilihIds, selesaiIds, allDoneIds,
@@ -397,6 +414,9 @@ export function GameProvider({ children }) {
 
       // Karyawan
       karyawanList, karyawanSesi, sewaKaryawan, lepasKaryawan,
+
+      // Jawaban
+      catatJawaban,
 
       // Run
       runHistory, runKe, addRunResult,
