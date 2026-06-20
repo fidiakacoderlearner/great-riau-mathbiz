@@ -92,6 +92,21 @@ function DashboardGuruPage() {
         </button>
       </div>
 
+      {/* Navigasi Cepat Guru */}
+      <div style={{ backgroundColor: '#166635', padding: '0.6rem 1.5rem',
+                    display: 'flex', gap: '0.5rem', overflowX: 'auto' }}>
+        <button
+          onClick={() => navigate('/dashboard-guru/soal')}
+          style={{
+            padding: '0.4rem 1rem', borderRadius: '0.65rem',
+            backgroundColor: 'rgba(255,255,255,0.15)', color: 'white',
+            fontWeight: 700, fontSize: '0.8rem', border: 'none', cursor: 'pointer',
+            whiteSpace: 'nowrap'
+          }}>
+          📝 Manajemen Soal
+        </button>
+      </div>
+
       <div style={{ maxWidth: '56rem', margin: '0 auto', padding: '1.5rem 1rem' }}>
 
         {/* Tombol Buat Kelas */}

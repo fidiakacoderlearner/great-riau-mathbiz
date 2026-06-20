@@ -361,3 +361,65 @@ export async function fetchGameProgress(siswaId) {
 
   return { allDoneIds, budget, runHistory }
 }
+
+// ── Keluarkan Siswa dari Kelas ────────────────────────────────────
+export async function keluarkanSiswa(kelasId, siswaId) {
+  const { error } = await supabase
+    .from('kelas_siswa')
+    .delete()
+    .eq('kelas_id', kelasId)
+    .eq('siswa_id', siswaId)
+
+  if (error) throw error
+}
+
+// ── Soal (CRUD oleh Guru) ─────────────────────────────────────────
+export async function fetchSoalByGuru(guruId) {
+  const { data, error } = await supabase
+    .from('produk')
+    .select('id, slug, nama, satuan, isi_per_batch, waktu_per_batch, biaya_per_unit, harga_jual, resep, soal, tipe_soal, pilihan, jawaban, hint, penjelasan')
+    .order('created_at', { ascending: false })
+
+  if (error) throw error
+  return data
+}
+
+export async function tambahSoalProduk({ slug, soal, tipeSoal, pilihan, jawaban, hint, penjelasan }) {
+  const { error } = await supabase
+    .from('produk')
+    .update({
+      soal,
+      tipe_soal:  tipeSoal,
+      pilihan,
+      jawaban,
+      hint:       hint || null,
+      penjelasan: penjelasan || null,
+    })
+    .eq('slug', slug)
+
+  if (error) throw error
+}
+
+// ── Update Produk Lengkap (Guru) ──────────────────────────────────
+export async function updateProduk({ slug, nama, satuan, isiPerBatch, waktuPerBatch, biayaPerUnit, hargaJual, resep, tipeSoal, soal, pilihan, jawaban, hint, penjelasan }) {
+  const { error } = await supabase
+    .from('produk')
+    .update({
+      nama,
+      satuan,
+      isi_per_batch:   isiPerBatch,
+      waktu_per_batch: waktuPerBatch,
+      biaya_per_unit:  biayaPerUnit,
+      harga_jual:      hargaJual,
+      resep,
+      soal,
+      tipe_soal:       tipeSoal,
+      pilihan,
+      jawaban,
+      hint:            hint || null,
+      penjelasan:      penjelasan || null,
+    })
+    .eq('slug', slug)
+
+  if (error) throw error
+}

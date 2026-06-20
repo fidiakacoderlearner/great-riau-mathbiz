@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useGame } from '../../context/GameContext'
-import { getModalPerBatch, hitungOptimal } from '../../data/soalData'
+import { getModalPerBatch, hitungOptimal, budgetCukupUntukBatch } from '../../data/soalData'
 import GameHeader from '../../components/GameHeader'
 import usePreventBack from '../../hooks/usePreventBack' 
 import usePreventRefresh from '../../hooks/usePreventRefresh'
@@ -298,6 +298,9 @@ function BertemuPembeli() {
   const waktuOk     = totalWaktu <= waktuTersedia
   const statusOk    = modalOk && waktuOk
 
+  // Cek apakah budget cukup untuk minimal 1 batch
+  const budgetLayak = budgetCukupUntukBatch(produkA, produkB, budgetProduksi)
+
   const totalUnitA  = batchA * produkA.isiPerBatch
   const totalUnitB  = batchB * produkB.isiPerBatch
   const pendapatan  = totalUnitA * produkA.hargaJual + totalUnitB * produkB.hargaJual
@@ -368,6 +371,72 @@ function BertemuPembeli() {
 
   // ── Setup ─────────────────────────────────────────────────────────
   if (step === 'setup') {
+
+    // Budget tidak cukup untuk 1 batch pun — tampilkan peringatan, tidak bisa berjualan
+    if (!budgetLayak) {
+      return (
+        <div style={{
+          height: '100dvh', display: 'flex', flexDirection: 'column',
+          backgroundColor: '#FDFBE4', overflow: 'hidden'
+        }}>
+          <GameHeader
+            badge="🛒 Bertemu Pembeli"
+            badgeWarna="#C0392B"
+            timerEl={<TimerDisplay detik={detikSisa} />}
+          />
+          <div style={{
+            flex: 1, display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center', padding: '1.5rem'
+          }}>
+            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>😰</div>
+            <div className="bg-white rounded-3xl p-6 shadow w-full"
+              style={{ maxWidth: '26rem', border: '2px solid #C0392B', marginBottom: '1.5rem' }}>
+              <h2 className="font-black text-center text-lg mb-3" style={{ color: '#C0392B' }}>
+                Budget Tidak Mencukupi!
+              </h2>
+              <p className="text-sm font-semibold text-gray-600 text-center leading-relaxed mb-4">
+                Budget produksimu <span className="font-black" style={{ color: '#C0392B' }}>
+                  Rp{budgetProduksi.toLocaleString('id-ID')}
+                </span> tidak cukup untuk membeli minimal 1 batch produk manapun.
+              </p>
+              <div className="flex flex-col gap-2 text-sm">
+                <div className="flex justify-between p-2 rounded-xl" style={{ backgroundColor: '#FADBD8' }}>
+                  <span className="font-semibold">1 batch {produkA.nama}</span>
+                  <span className="font-black" style={{ color: '#C0392B' }}>
+                    Rp{mA.toLocaleString('id-ID')}
+                  </span>
+                </div>
+                <div className="flex justify-between p-2 rounded-xl" style={{ backgroundColor: '#FADBD8' }}>
+                  <span className="font-semibold">1 batch {produkB.nama}</span>
+                  <span className="font-black" style={{ color: '#C0392B' }}>
+                    Rp{mB.toLocaleString('id-ID')}
+                  </span>
+                </div>
+                <div className="flex justify-between p-2 rounded-xl mt-1" style={{ backgroundColor: '#EAF4FB' }}>
+                  <span className="font-semibold">Budget tersedia</span>
+                  <span className="font-black" style={{ color: '#1E8449' }}>
+                    Rp{budgetProduksi.toLocaleString('id-ID')}
+                  </span>
+                </div>
+              </div>
+              <p className="text-xs font-semibold text-gray-400 text-center mt-3">
+                💡 Tip: Di sesi berikutnya, kurangi jumlah karyawan yang disewa agar budget produksi lebih besar.
+              </p>
+            </div>
+            <button
+              onClick={() => { setGamePhase(null); navigate('/') }}
+              style={{
+                padding: '0.85rem 2.5rem', borderRadius: '1rem',
+                backgroundColor: '#C0392B', color: 'white',
+                fontWeight: 700, fontSize: '1rem', border: 'none', cursor: 'pointer'
+              }}>
+              🏠 Kembali ke Menu
+            </button>
+          </div>
+        </div>
+      )
+    }
+
     return (
       <div style={{
         height: '100dvh', display: 'flex', flexDirection: 'column',

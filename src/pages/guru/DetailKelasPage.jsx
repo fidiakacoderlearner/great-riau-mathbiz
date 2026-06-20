@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useGame } from '../../context/GameContext'
-import { fetchSiswaByKelas, fetchStatistikKelas } from '../../lib/game'
+import { fetchSiswaByKelas, fetchStatistikKelas, keluarkanSiswa } from '../../lib/game'
 
 function formatWaktu(detik) {
   if (!detik) return '0 dtk'
@@ -57,6 +57,18 @@ function DetailKelasPage() {
       console.error(err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function handleKeluarkanSiswa(siswaId, namaSiswa) {
+    if (!window.confirm(
+      `Keluarkan "${namaSiswa}" dari kelas ini?\nData progress siswa tidak akan terhapus.`
+    )) return
+    try {
+      await keluarkanSiswa(id, siswaId)
+      loadData()
+    } catch (err) {
+      alert('Gagal mengeluarkan siswa: ' + err.message)
     }
   }
 
@@ -217,19 +229,31 @@ function DetailKelasPage() {
                   ))}
                 </div>
 
-                {/* Tombol Detail */}
-                <button
-                  onClick={() => navigate(
-                    `/dashboard-guru/kelas/${id}/siswa/${siswa.id}`
-                  )}
-                  style={{
-                    padding: '0.5rem 1rem', borderRadius: '0.75rem',
-                    backgroundColor: '#EAF4FB', color: '#3498DB',
-                    fontWeight: 700, fontSize: '0.8rem',
-                    border: 'none', cursor: 'pointer', whiteSpace: 'nowrap'
-                  }}>
-                  Detail →
-                </button>
+                {/* Tombol Aksi */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <button
+                    onClick={() => navigate(
+                      `/dashboard-guru/kelas/${id}/siswa/${siswa.id}`
+                    )}
+                    style={{
+                      padding: '0.5rem 1rem', borderRadius: '0.75rem',
+                      backgroundColor: '#EAF4FB', color: '#3498DB',
+                      fontWeight: 700, fontSize: '0.8rem',
+                      border: 'none', cursor: 'pointer', whiteSpace: 'nowrap'
+                    }}>
+                    Detail →
+                  </button>
+                  <button
+                    onClick={() => handleKeluarkanSiswa(siswa.id, siswa.nama_lengkap)}
+                    style={{
+                      padding: '0.4rem 0.75rem', borderRadius: '0.6rem',
+                      backgroundColor: '#FADBD8', color: '#C0392B',
+                      fontWeight: 700, fontSize: '0.72rem',
+                      border: 'none', cursor: 'pointer', whiteSpace: 'nowrap'
+                    }}>
+                    🚪 Keluarkan
+                  </button>
+                </div>
               </div>
             ))}
 

@@ -97,7 +97,6 @@ function RadarChart({ kecepatan, akurasi, kemandirian, pemahamanLP, konsistensi 
 
   return (
     <svg width="100%" viewBox="0 0 280 230">
-      {/* Grid */}
       {gridLevels.map(level => {
         const pts = labels.map((_, i) => getAxisPoint(i, r * level / 100))
         const path = pts.map((p, i) =>
@@ -107,24 +106,20 @@ function RadarChart({ kecepatan, akurasi, kemandirian, pemahamanLP, konsistensi 
           stroke="#eee" strokeWidth="1" />
       })}
 
-      {/* Axis lines */}
       {labels.map((_, i) => {
         const end = getAxisPoint(i, r)
         return <line key={i} x1={cx} y1={cy} x2={end.x} y2={end.y}
           stroke="#ddd" strokeWidth="1" />
       })}
 
-      {/* Data area */}
       <path d={dataPath}
         fill="rgba(30,132,73,0.2)" stroke="#1E8449" strokeWidth="2" />
 
-      {/* Data points */}
       {dataPoints.map((p, i) => (
         <circle key={i} cx={p.x} cy={p.y} r="4"
           fill="#1E8449" stroke="white" strokeWidth="1.5" />
       ))}
 
-      {/* Labels */}
       {labels.map((label, i) => {
         const pt     = getAxisPoint(i, r + 20)
         const anchor = pt.x < cx - 5 ? 'end' : pt.x > cx + 5 ? 'start' : 'middle'
@@ -136,7 +131,6 @@ function RadarChart({ kecepatan, akurasi, kemandirian, pemahamanLP, konsistensi 
         )
       })}
 
-      {/* Nilai */}
       {dataPoints.map((p, i) => (
         <text key={i} x={p.x} y={p.y - 8}
           fontSize="8" fontWeight="bold" fill="#1E8449" textAnchor="middle">
@@ -147,6 +141,205 @@ function RadarChart({ kecepatan, akurasi, kemandirian, pemahamanLP, konsistensi 
   )
 }
 
+// ── Komponen Analisa AI ───────────────────────────────────────────
+function AnalisaAI({ namaSiswa, stats }) {
+  const [hasil,    setHasil]    = useState('')
+  const [loading,  setLoading]  = useState(false)
+  const [error,    setError]    = useState('')
+  const [sudahDi,  setSudahDi]  = useState(false)
+
+  async function handleAnalisa() {
+    setLoading(true)
+    setError('')
+    setHasil('')
+
+    const prompt = `Kamu adalah asisten pendidikan matematika yang membantu guru menganalisis kemampuan siswa.
+
+Berikut adalah data performa siswa bernama "${namaSiswa}" dalam permainan edukatif matematika bisnis (program linear / pertidaksamaan linear):
+
+- Total Run Selesai: ${stats.totalRun} run
+- Produk Diselesaikan: ${stats.produkSelesai}/10 produk
+- Total XP: ${stats.totalXp}
+- Total Pendapatan: Rp${stats.totalPendapatan.toLocaleString('id-ID')}
+- Akurasi Jawaban: ${stats.akurasi}%
+- Hint Dipakai: ${stats.hintDipakai} dari ${stats.totalJawaban} soal (${stats.persenHint}%)
+- Rata-rata Waktu per Run: ${formatWaktu(stats.rataWaktu)}
+
+Skor Profil Belajar (0-100):
+- Kecepatan: ${stats.kecepatan}/100
+- Akurasi: ${stats.akurasi}/100
+- Kemandirian (tidak pakai hint): ${stats.kemandirian}/100
+- Pemahaman Program Linear: ${stats.pemahamanLP}/100
+- Konsistensi: ${stats.konsistensi}/100
+
+Berikan analisis kemampuan siswa ini dalam Bahasa Indonesia yang mudah dipahami guru. Strukturkan jawabanmu dengan:
+1. **Ringkasan Kemampuan** — gambaran umum performa siswa
+2. **Kekuatan** — aspek yang sudah baik (minimal 2 poin)
+3. **Area yang Perlu Ditingkatkan** — aspek yang masih lemah (minimal 2 poin)
+4. **Rekomendasi untuk Guru** — langkah konkret yang bisa dilakukan guru (minimal 2 saran)
+
+Gunakan bahasa yang hangat, konstruktif, dan mendorong. Jangan terlalu teknis.`
+
+    try {
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: 'llama-3.1-8b-instant',
+          max_tokens: 1024,
+          messages: [{ role: 'user', content: prompt }],
+        }),
+      })
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}))
+        throw new Error(errData?.error?.message ?? `HTTP ${res.status}`)
+      }
+
+      const data = await res.json()
+      const teks = data?.choices?.[0]?.message?.content ?? ''
+      setHasil(teks)
+      setSudahDi(true)
+    } catch (err) {
+      setError('Gagal mendapatkan analisis: ' + err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Render teks markdown sederhana (bold + list)
+  function renderTeks(teks) {
+    return teks.split('\n').map((baris, i) => {
+      // Heading **teks**
+      const headingMatch = baris.match(/^\*\*(.+)\*\*$/)
+      if (headingMatch) {
+        return (
+          <p key={i} style={{ fontWeight: 900, color: '#1E8449',
+                              marginTop: '1rem', marginBottom: '0.25rem',
+                              fontSize: '0.95rem' }}>
+            {headingMatch[1]}
+          </p>
+        )
+      }
+      // Bold inline **x**
+      const parts = baris.split(/\*\*(.+?)\*\*/)
+      const rendered = parts.map((part, j) =>
+        j % 2 === 1
+          ? <strong key={j}>{part}</strong>
+          : part
+      )
+      // List item
+      const isList = baris.trim().startsWith('-') || /^\d+\./.test(baris.trim())
+      return baris.trim() === '' ? (
+        <br key={i} />
+      ) : (
+        <p key={i} style={{
+          fontSize: '0.85rem', color: '#444', lineHeight: 1.7,
+          fontWeight: 500,
+          paddingLeft: isList ? '0.75rem' : 0,
+          marginBottom: '0.15rem'
+        }}>
+          {rendered}
+        </p>
+      )
+    })
+  }
+
+  return (
+    <div style={{
+      backgroundColor: 'white', borderRadius: '1.25rem',
+      padding: '1.25rem', border: '2px solid #8E44AD',
+      marginBottom: '0.75rem'
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between',
+                    alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+        <div>
+          <h3 style={{ fontWeight: 900, color: '#8E44AD', marginBottom: '0.1rem' }}>
+            🤖 Analisis AI
+          </h3>
+          <p style={{ fontSize: '0.72rem', color: '#bbb', fontWeight: 600 }}>
+            Menggunakan Artificial Intelligence (AI) untuk menganalisis performa siswa
+          </p>
+        </div>
+        <button
+          onClick={handleAnalisa}
+          disabled={loading}
+          style={{
+            padding: '0.6rem 1.25rem', borderRadius: '0.75rem',
+            backgroundColor: loading ? '#ddd' : '#8E44AD',
+            color: loading ? '#aaa' : 'white',
+            fontWeight: 700, fontSize: '0.875rem',
+            border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
+            transition: 'all 0.2s', whiteSpace: 'nowrap'
+          }}>
+          {loading ? '⏳ Menganalisis...' : sudahDi ? '🔄 Analisis Ulang' : '✨ Analisis Sekarang'}
+        </button>
+      </div>
+
+      {/* Loading state */}
+      {loading && (
+        <div style={{
+          padding: '1.5rem', textAlign: 'center',
+          backgroundColor: '#FAF5FF', borderRadius: '0.75rem'
+        }}>
+          <p style={{ color: '#8E44AD', fontWeight: 700, fontSize: '0.875rem' }}>
+            🧠 AI sedang menganalisis data siswa...
+          </p>
+          <p style={{ color: '#bbb', fontSize: '0.75rem', fontWeight: 600, marginTop: '0.25rem' }}>
+            Mohon tunggu sebentar
+          </p>
+        </div>
+      )}
+
+      {/* Error state */}
+      {error && !loading && (
+        <div style={{
+          padding: '1rem', backgroundColor: '#FADBD8',
+          borderRadius: '0.75rem', border: '1.5px solid #C0392B'
+        }}>
+          <p style={{ color: '#C0392B', fontWeight: 700, fontSize: '0.85rem' }}>
+            ❌ {error}
+          </p>
+          <p style={{ color: '#888', fontSize: '0.75rem', fontWeight: 600, marginTop: '0.25rem' }}>
+            Pastikan VITE_GROQ_API_KEY sudah diset di file .env
+          </p>
+        </div>
+      )}
+
+      {/* Hasil analisa */}
+      {hasil && !loading && (
+        <div style={{
+          padding: '1rem', backgroundColor: '#FAF5FF',
+          borderRadius: '0.75rem', border: '1.5px solid #D2B4DE'
+        }}>
+          {renderTeks(hasil)}
+        </div>
+      )}
+
+      {/* Empty state */}
+      {!hasil && !loading && !error && (
+        <div style={{
+          padding: '1.5rem', textAlign: 'center',
+          backgroundColor: '#FAF5FF', borderRadius: '0.75rem',
+          border: '1.5px dashed #D2B4DE'
+        }}>
+          <p style={{ fontSize: '1.5rem', marginBottom: '0.25rem' }}>🤖</p>
+          <p style={{ color: '#8E44AD', fontWeight: 700, fontSize: '0.875rem' }}>
+            Klik "Analisis Sekarang" untuk mendapatkan
+          </p>
+          <p style={{ color: '#aaa', fontSize: '0.8rem', fontWeight: 600 }}>
+            insight mendalam tentang kemampuan siswa ini
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Halaman Utama ─────────────────────────────────────────────────
 function DetailSiswaPage() {
   const { kelasId, siswaId } = useParams()
   const navigate = useNavigate()
@@ -160,7 +353,6 @@ function DetailSiswaPage() {
   async function loadData() {
     try {
       setLoading(true)
-      // Ambil nama siswa
       const { data: profile } = await supabase
         .from('profiles')
         .select('nama_lengkap')
@@ -168,7 +360,6 @@ function DetailSiswaPage() {
         .single()
       setNamaSiswa(profile?.nama_lengkap ?? '')
 
-      // Ambil semua sesi
       const data = await fetchProgressSiswa(siswaId)
       setSesiList(data)
     } catch (err) {
@@ -178,7 +369,6 @@ function DetailSiswaPage() {
     }
   }
 
-  // Kalkulasi statistik dari semua sesi
   const semuaRun     = sesiList.flatMap(s => s.run ?? [])
   const semuaJawaban = semuaRun.flatMap(r => r.jawaban_soal ?? [])
 
@@ -194,24 +384,10 @@ function DetailSiswaPage() {
     r.produk_a?.slug, r.produk_b?.slug
   ].filter(Boolean))).size
 
-  // Data chart
-  const chartPendapatan = semuaRun.map((r, i) => ({
-    labelKey: `Run ${i + 1}`,
-    nilaiKey: Math.round((r.pendapatan ?? 0) / 1000),
-  }))
-
-  const chartWaktu = semuaRun.map((r, i) => ({
-    labelKey: `Run ${i + 1}`,
-    nilaiKey: Math.round((r.waktu_bermain ?? 0) / 60),
-  }))
-
-  // Hitung radar chart values (0-100)
-  const rataWaktu     = semuaRun.length > 0
-    ? totalWaktu / semuaRun.length : 0
-  const kecepatanScore = semuaRun.length === 0 ? 0 
-    : Math.max(0, Math.min(100, 
-        Math.round(100 - (rataWaktu / 600) * 100)))
-  const akurasiScore   = semuaRun.length === 0 ? 0 : Math.round(akurasi)
+  const rataWaktu       = semuaRun.length > 0 ? totalWaktu / semuaRun.length : 0
+  const kecepatanScore  = semuaRun.length === 0 ? 0
+    : Math.max(0, Math.min(100, Math.round(100 - (rataWaktu / 600) * 100)))
+  const akurasiScore    = Math.round(akurasi)
   const kemandirianScore = semuaJawaban.length === 0 ? 0
     : Math.round(100 - (hintDipakai / semuaJawaban.length) * 100)
   const pemahamanLPScore = semuaRun.length === 0 ? 0
@@ -234,6 +410,24 @@ function DetailSiswaPage() {
         return Math.max(0, Math.min(100,
           Math.round(100 - (stddev / avg) * 100)))
       })()
+
+  // Objek stats untuk dikirim ke AnalisaAI
+  const statsAI = {
+    totalRun:      semuaRun.length,
+    produkSelesai,
+    totalXp,
+    totalPendapatan,
+    totalJawaban:  semuaJawaban.length,
+    akurasi,
+    hintDipakai,
+    persenHint:    semuaJawaban.length > 0
+      ? Math.round((hintDipakai / semuaJawaban.length) * 100) : 0,
+    rataWaktu,
+    kecepatan:     kecepatanScore,
+    kemandirian:   kemandirianScore,
+    pemahamanLP:   pemahamanLPScore,
+    konsistensi:   konsistensiScore,
+  }
 
   return (
     <div style={{ minHeight: '100dvh', backgroundColor: '#FDFBE4' }}>
@@ -276,13 +470,12 @@ function DetailSiswaPage() {
             <div style={{
               display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)',
               gap: '0.75rem', marginBottom: '1.25rem'
-            }}
-              className="md:grid-cols-4">
+            }}>
               {[
-                { label: 'Total XP',        nilai: `⭐ ${totalXp}`,             warna: '#F39C12' },
-                { label: 'Total Pendapatan',nilai: `Rp${(totalPendapatan/1000).toFixed(0)}k`, warna: '#1E8449' },
-                { label: 'Akurasi Jawaban', nilai: `${akurasi}%`,               warna: '#3498DB' },
-                { label: 'Produk Selesai',  nilai: `${produkSelesai}/10`,        warna: '#C0392B' },
+                { label: 'Total XP',         nilai: `⭐ ${totalXp}`,                             warna: '#F39C12' },
+                { label: 'Total Pendapatan', nilai: `Rp${(totalPendapatan/1000).toFixed(0)}k`,   warna: '#1E8449' },
+                { label: 'Akurasi Jawaban',  nilai: `${akurasi}%`,                               warna: '#3498DB' },
+                { label: 'Produk Selesai',   nilai: `${produkSelesai}/10`,                        warna: '#C0392B' },
               ].map((item, i) => (
                 <div key={i} style={{
                   backgroundColor: 'white', borderRadius: '1rem',
@@ -293,21 +486,18 @@ function DetailSiswaPage() {
                               color: '#888', marginBottom: '0.25rem' }}>
                     {item.label}
                   </p>
-                  <p style={{ fontWeight: 900, fontSize: '1.25rem',
-                              color: item.warna }}>
+                  <p style={{ fontWeight: 900, fontSize: '1.25rem', color: item.warna }}>
                     {item.nilai}
                   </p>
                 </div>
               ))}
             </div>
 
-            {/* Radar Chart + Penjelasan */}
+            {/* Radar + Metrik */}
             <div style={{
               display: 'flex', flexDirection: 'column', gap: '0.75rem',
               marginBottom: '1.25rem'
-            }}
-              className="md:flex-row">
-
+            }}>
               <div style={{
                 flex: 1, backgroundColor: 'white', borderRadius: '1.25rem',
                 padding: '1.25rem', border: '2px solid #ddd'
@@ -333,30 +523,22 @@ function DetailSiswaPage() {
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   {[
-                    { label: 'Kecepatan',     nilai: kecepatanScore,
-                      ket: 'Seberapa cepat menjawab soal' },
-                    { label: 'Akurasi',       nilai: akurasiScore,
-                      ket: 'Persentase jawaban benar' },
-                    { label: 'Kemandirian',   nilai: kemandirianScore,
-                      ket: 'Jarang pakai hint = skor tinggi' },
-                    { label: 'Pemahaman',  nilai: pemahamanLPScore,
-                      ket: 'Pendapatan aktual vs optimal' },
-                    { label: 'Konsistensi',   nilai: konsistensiScore,
-                      ket: 'Stabilitas performa antar run' },
+                    { label: 'Kecepatan',   nilai: kecepatanScore,   ket: 'Seberapa cepat menjawab soal' },
+                    { label: 'Akurasi',     nilai: akurasiScore,     ket: 'Persentase jawaban benar' },
+                    { label: 'Kemandirian', nilai: kemandirianScore, ket: 'Jarang pakai hint = skor tinggi' },
+                    { label: 'Pemahaman',   nilai: pemahamanLPScore, ket: 'Pendapatan aktual vs optimal' },
+                    { label: 'Konsistensi', nilai: konsistensiScore, ket: 'Stabilitas performa antar run' },
                   ].map((item, i) => (
                     <div key={i}>
                       <div style={{ display: 'flex', justifyContent: 'space-between',
                                     marginBottom: '0.2rem' }}>
-                        <span style={{ fontSize: '0.8rem', fontWeight: 700,
-                                       color: '#555' }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#555' }}>
                           {item.label}
                         </span>
-                        <span style={{ fontSize: '0.8rem', fontWeight: 900,
-                                       color: '#1E8449' }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 900, color: '#1E8449' }}>
                           {item.nilai}/100
                         </span>
                       </div>
-                      {/* Progress bar */}
                       <div style={{ height: '6px', backgroundColor: '#eee',
                                     borderRadius: '3px', overflow: 'hidden' }}>
                         <div style={{
@@ -377,15 +559,17 @@ function DetailSiswaPage() {
               </div>
             </div>
 
+            {/* ── ANALISA AI ── */}
+            <AnalisaAI namaSiswa={namaSiswa} stats={statsAI} />
+
             {/* Grafik Pendapatan */}
-            {chartPendapatan.length > 0 && (
+            {semuaRun.length > 0 && (
               <div style={{
                 backgroundColor: 'white', borderRadius: '1.25rem',
                 padding: '1.25rem', border: '2px solid #ddd',
                 marginBottom: '0.75rem'
               }}>
-                <h3 style={{ fontWeight: 900, color: '#1E8449',
-                              marginBottom: '0.25rem' }}>
+                <h3 style={{ fontWeight: 900, color: '#1E8449', marginBottom: '0.25rem' }}>
                   📈 Pendapatan per Run
                 </h3>
                 <p style={{ fontSize: '0.75rem', color: '#aaa',
@@ -406,14 +590,13 @@ function DetailSiswaPage() {
             )}
 
             {/* Grafik Waktu */}
-            {chartWaktu.length > 0 && (
+            {semuaRun.length > 0 && (
               <div style={{
                 backgroundColor: 'white', borderRadius: '1.25rem',
                 padding: '1.25rem', border: '2px solid #ddd',
                 marginBottom: '0.75rem'
               }}>
-                <h3 style={{ fontWeight: 900, color: '#3498DB',
-                              marginBottom: '0.25rem' }}>
+                <h3 style={{ fontWeight: 900, color: '#3498DB', marginBottom: '0.25rem' }}>
                   ⏱ Waktu Bermain per Run
                 </h3>
                 <p style={{ fontSize: '0.75rem', color: '#aaa',
@@ -439,35 +622,31 @@ function DetailSiswaPage() {
                 backgroundColor: 'white', borderRadius: '1.25rem',
                 padding: '1.25rem', border: '2px solid #ddd'
               }}>
-                <h3 style={{ fontWeight: 900, color: '#333',
-                              marginBottom: '0.75rem' }}>
+                <h3 style={{ fontWeight: 900, color: '#333', marginBottom: '0.75rem' }}>
                   📋 Riwayat Run
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   {semuaRun.map((run, i) => (
-                    <div key={run.id}
-                      style={{
-                        padding: '0.75rem 1rem', borderRadius: '0.75rem',
-                        backgroundColor: '#EAF4FB'
-                      }}>
+                    <div key={run.id} style={{
+                      padding: '0.75rem 1rem', borderRadius: '0.75rem',
+                      backgroundColor: '#EAF4FB'
+                    }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between',
                                     marginBottom: '0.35rem' }}>
                         <span style={{ fontWeight: 800, fontSize: '0.875rem' }}>
                           Run {i + 1} — {run.produk_a?.nama} + {run.produk_b?.nama}
                         </span>
-                        <span style={{ fontWeight: 900, color: '#1E8449',
-                                       fontSize: '0.875rem' }}>
+                        <span style={{ fontWeight: 900, color: '#1E8449', fontSize: '0.875rem' }}>
                           Rp{(run.pendapatan ?? 0).toLocaleString('id-ID')}
                         </span>
                       </div>
                       <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                         {[
-                          { label: '⏱', nilai: formatWaktu(run.waktu_bermain)       },
-                          { label: '⭐', nilai: `${run.xp_run} XP`                   },
+                          { label: '⏱', nilai: formatWaktu(run.waktu_bermain) },
+                          { label: '⭐', nilai: `${run.xp_run} XP` },
                           { label: '🎯', nilai: `Optimal: Rp${(run.pendapatan_optimal ?? 0).toLocaleString('id-ID')}` },
                         ].map((item, j) => (
-                          <span key={j} style={{ fontSize: '0.75rem',
-                                                 color: '#888', fontWeight: 600 }}>
+                          <span key={j} style={{ fontSize: '0.75rem', color: '#888', fontWeight: 600 }}>
                             {item.label} {item.nilai}
                           </span>
                         ))}
