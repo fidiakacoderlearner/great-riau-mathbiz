@@ -89,8 +89,10 @@ export function GameProvider({ children }) {
 
   // ── Load Produk & Karyawan dari Supabase ─────────────────────────
   useEffect(() => {
-    // Tunggu sampai user sudah diketahui (bukan loading auth)
+    // Hanya load setelah auth selesai dan user diketahui
     if (authLoading) return
+
+    let cancelled = false
 
     async function loadData() {
       try {
@@ -98,14 +100,16 @@ export function GameProvider({ children }) {
 
         if (user?.role === 'siswa' && user?.id) {
           kelasId = await fetchKelasIdSiswa(user.id)
-
           if (kelasId) {
-            // Pastikan kelas sudah punya salinan produk, kalau belum salin dulu
             await salinProdukKeKelas(kelasId)
           }
         }
 
+        if (cancelled) return
+
         let produk = await fetchProduk(kelasId)
+
+        if (cancelled) return
 
         // Fallback: kalau produk kelas kosong, pakai template global
         if (produk.length === 0) {
@@ -113,16 +117,22 @@ export function GameProvider({ children }) {
         }
 
         const karyawan = await fetchKaryawan()
+
+        if (cancelled) return
+
         setProdukList(produk)
         setKaryawanList(karyawan)
       } catch (err) {
-        console.error('Gagal load data:', err)
+        if (!cancelled) console.error('Gagal load data:', err)
       } finally {
-        setDataLoading(false)
+        if (!cancelled) setDataLoading(false)
       }
     }
+
     loadData()
-  }, [user?.id, user?.role, authLoading])
+
+    return () => { cancelled = true }
+  }, [user?.id])
 
   // ── Sync localStorage ────────────────────────────────────────────
   useEffect(() => { localStorage.setItem(LS.PILIH_IDS,    JSON.stringify(pilihIds))    }, [pilihIds])
