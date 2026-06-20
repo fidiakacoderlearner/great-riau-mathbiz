@@ -116,7 +116,8 @@ function FormEdit({ produk, onClose, onSaved }) {
       setTimeout(() => setSuccessMsg(''), 2500)
       onSaved()
     } catch (err) {
-      setError('Gagal menyimpan: ' + err.message)
+      // setError('Gagal menyimpan: ' + err.message)
+      setError('Gagal menyimpan. Pilih tipe soal pada Soal & Jawaban terlebih dahulu ')
     } finally {
       setSaving(false)
     }
