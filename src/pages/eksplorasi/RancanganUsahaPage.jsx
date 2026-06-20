@@ -485,6 +485,8 @@ function RancanganUsahaPage() {
   if (step === 'soal' && produkDipilih) {
     const soalObj = {
       id:            produkDipilih.id,
+      dbId:          produkDipilih.dbId,
+      tipeSoal:      produkDipilih.tipeSoal,
       produk:        produkDipilih.nama,
       biayaProduksi: produkDipilih.biayaPerUnit,
       resep:         produkDipilih.resep,

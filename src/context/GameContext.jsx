@@ -22,6 +22,7 @@ const LS = {
   BUDGET:        'griau_budget',
   RUN_HISTORY:   'griau_run_history',
   SESSION_START: 'griau_session_start',
+  RESET_AT:      'griau_reset_at',
 }
 
 function safeLoad(key, fallback) {
@@ -51,6 +52,7 @@ export function GameProvider({ children }) {
   const [runHistory,   setRunHistory]   = useState(() => safeLoad(LS.RUN_HISTORY,  []))
   const [sessionStart, setSessionStart] = useState(() => safeLoad(LS.SESSION_START, null))
   const [karyawanSesi, setKaryawanSesi] = useState([])
+  const [jawabanSementara, setJawabanSementara] = useState([])
 
   // ── Load Auth ─────────────────────────────────────────────────────
   useEffect(() => {
@@ -63,7 +65,12 @@ export function GameProvider({ children }) {
         if (userData.role === 'siswa') {
           try {
             const { fetchGameProgress } = await import('../lib/game')
-            const progress = await fetchGameProgress(userData.id)
+
+            const resetAt = localStorage.getItem(LS.RESET_AT)
+            const progress = await fetchGameProgress(
+              userData.id, 
+              resetAt ? parseInt(resetAt) : null
+            )
             setAllDoneIds(progress.allDoneIds)
             setBudget(progress.budget)
             setRunHistory(progress.runHistory)
@@ -158,6 +165,16 @@ export function GameProvider({ children }) {
     setKaryawanSesi(prev => prev.filter((_, i) => i !== index))
   }
 
+  function catatJawaban({ produkDbId = null, tipeSoal,
+                          jawabanBenar, percobaanKe,
+                          hintDipakai, waktuMenjawab, xpDiperoleh }) {
+    setJawabanSementara(prev => [...prev, {
+      produkDbId, tipeSoal,
+      jawabanBenar, percobaanKe,
+      hintDipakai, waktuMenjawab, xpDiperoleh,
+    }])
+  }
+
   // ── Game Phase ───────────────────────────────────────────────────
   function setGamePhase(phase) { setGamePhaseRaw(phase) }
 
@@ -175,8 +192,7 @@ export function GameProvider({ children }) {
     setGamePhaseRaw(null)
     setSessionStart(Date.now())
     setKaryawanSesi([])
-
-    
+    setJawabanSementara([])
   }
 
   // ── Add Run Result ────────────────────────────────────────────────
@@ -204,17 +220,16 @@ export function GameProvider({ children }) {
 
     if (user) {
       try {
-        // ← Ambil kelas_id siswa dulu
-        const { fetchKelasIdSiswa } = await import('../lib/game')
+        const { fetchKelasIdSiswa, saveJawaban } = await import('../lib/game')
         const kelasId = await fetchKelasIdSiswa(user.id)
 
         const sesi = await createSesi({
           siswaId:    user.id,
-          kelasId,           // ← sekarang terisi
+          kelasId,
           budgetAwal: budget,
         })
 
-        await createRun({
+        const runDb = await createRun({
           sesiId:            sesi.id,
           runKe:             runHistory.length + 1,
           produkADbId:       produkA.dbId,
@@ -233,6 +248,22 @@ export function GameProvider({ children }) {
           waktuBermain,
         })
 
+        // ← Simpan semua jawaban ke DB setelah run tersimpan
+        if (jawabanSementara.length > 0) {
+          await Promise.all(
+            jawabanSementara.map(j => saveJawaban({
+              runId:         runDb.id,
+              produkDbId:    j.produkDbId,
+              tipeSoal:      j.tipeSoal,
+              jawabanBenar:  j.jawabanBenar,
+              percobaanKe:   j.percobaanKe,
+              hintDipakai:   j.hintDipakai,
+              waktuMenjawab: j.waktuMenjawab,
+              xpDiperoleh:   j.xpDiperoleh,
+            }))
+          )
+        }
+
         await updateSesi(sesi.id, {
           totalXp:         totalXp + xpRun,
           totalPendapatan: totalPendapatan + pendapatan,
@@ -243,6 +274,9 @@ export function GameProvider({ children }) {
         console.error('Gagal simpan run:', err)
       }
     }
+
+    // Reset setelah selesai
+    setJawabanSementara([])   // ← tambah ini sebelum baris setRunHistory
 
     setRunHistory(prev => [...prev, runData])
     setBudget(prev => prev - biayaKaryawan + pendapatan)
@@ -266,7 +300,13 @@ export function GameProvider({ children }) {
     setRunHistory([])
     setSessionStart(null)
     setKaryawanSesi([])
-    Object.values(LS).forEach(k => localStorage.removeItem(k))
+    // Hapus semua LS kecuali RESET_AT
+    Object.entries(LS).forEach(([key, value]) => {
+      if (key !== 'RESET_AT') localStorage.removeItem(value)
+    })
+
+    // Set timestamp reset sekarang
+    localStorage.setItem(LS.RESET_AT, Date.now().toString())
   }
 
   // ── Auth Actions ──────────────────────────────────────────────────
@@ -291,6 +331,8 @@ export function GameProvider({ children }) {
 
       // XP
       xp, totalXp, tambahXP,
+
+      catatJawaban,
 
       // Produk
       produkTerpilih, pilihIds, selesaiIds, allDoneIds,

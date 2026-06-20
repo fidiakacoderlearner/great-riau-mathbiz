@@ -6,7 +6,7 @@ import PenjelasanModal from './PenjelasanModal'
 import FeedbackPopup from './FeedbackPopup'
 
 function SoalCard({ soal, onSelesai }) {
-  const { tambahXP } = useGame()
+  const { tambahXP, catatJawaban } = useGame()
 
   // Ref — selalu baca nilai terbaru
   const hintRef      = useRef(false)
@@ -54,14 +54,44 @@ function SoalCard({ soal, onSelesai }) {
     setPilihanDipilih(nilai)
     setInputDisabled(true)
 
+    const waktuMenjawab = Math.floor((Date.now() - waktuMulai.current) / 1000)
+    const percobaanKe   = XP_CONFIG.maxAttempts - percobaan + 1
+
     if (nilai === soal.jawaban) {
       setSudahBenar(true)
-      tambahXP(hitungXP())
+      const xpDapat = hitungXP()
+      tambahXP(xpDapat)
+
+      // ← catat jawaban benar
+      catatJawaban({
+        produkDbId:    soal.dbId ?? null,
+        tipeSoal:      soal.tipeSoal === 'A' ? 'rancangan_a' : 'rancangan_b',
+        jawabanBenar:  true,
+        percobaanKe,
+        hintDipakai:   hintRef.current,
+        waktuMenjawab,
+        xpDiperoleh:   xpDapat,
+      })
+
       tampilkanFeedback(true, percobaan, soal.feedbackBenar)
     } else {
-      firstTryRef.current = false  // ← ref langsung diupdate
+      firstTryRef.current = false
       const sisa = percobaan - 1
       setPercobaan(sisa)
+
+      // ← catat jawaban salah saat percobaan habis
+      if (sisa === 0) {
+        catatJawaban({
+          produkDbId:    soal.dbId ?? null,
+          tipeSoal:      soal.tipeSoal === 'A' ? 'rancangan_a' : 'rancangan_b',
+          jawabanBenar:  false,
+          percobaanKe:   XP_CONFIG.maxAttempts,
+          hintDipakai:   hintRef.current,
+          waktuMenjawab,
+          xpDiperoleh:   0,
+        })
+      }
+
       tampilkanFeedback(false, sisa, soal.feedbackSalah)
     }
   }
