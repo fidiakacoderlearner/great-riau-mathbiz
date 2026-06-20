@@ -363,7 +363,6 @@ export async function fetchGameProgress(siswaId, resetAt = null) {
   }))
 
   return { allDoneIds, budget, runHistory }
-<<<<<<< HEAD
 }
 
 // ── Keluarkan Siswa dari Kelas ────────────────────────────────────
@@ -426,6 +425,4 @@ export async function updateProduk({ slug, nama, satuan, isiPerBatch, waktuPerBa
     .eq('slug', slug)
 
   if (error) throw error
-=======
->>>>>>> c94c1bd35a5f8bc0541c339032f83f229f6bc480
 }
