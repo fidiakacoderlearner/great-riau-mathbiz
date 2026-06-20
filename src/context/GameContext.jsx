@@ -387,6 +387,10 @@ export function GameProvider({ children }) {
   }
 
   return (
+  function catatJawaban(jawaban) {
+    setJawabanSementara(prev => [...prev, jawaban])
+  }
+
     <GameContext.Provider value={{
       // Auth
       user, authLoading, logout,
@@ -410,6 +414,9 @@ export function GameProvider({ children }) {
 
       // Karyawan
       karyawanList, karyawanSesi, sewaKaryawan, lepasKaryawan,
+
+      // Jawaban
+      catatJawaban,
 
       // Run
       runHistory, runKe, addRunResult,
