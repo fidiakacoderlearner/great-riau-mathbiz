@@ -97,6 +97,7 @@ function DetailKelasPage() {
 
       {/* Header */}
       <div style={{
+        position: 'sticky', top: 0, zIndex: 50,
         backgroundColor: '#1E8449', padding: '1rem 1.5rem',
         display: 'flex', alignItems: 'center', gap: '1rem'
       }}>

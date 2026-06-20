@@ -68,44 +68,48 @@ function DashboardGuruPage() {
   return (
     <div style={{ minHeight: '100dvh', backgroundColor: '#FDFBE4' }}>
 
-      {/* Header */}
-      <div style={{
-        backgroundColor: '#1E8449', padding: '1rem 1.5rem',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between'
-      }}>
-        <div>
-          <h1 style={{ fontWeight: 900, fontSize: '1.25rem', color: 'white' }}>
-            📚 Dashboard Guru
-          </h1>
-          <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.8)',
-                      fontWeight: 600 }}>
-            Halo, {user?.namaLengkap}!
-          </p>
+      {/* KELOMPOK HEADER STICKY */}
+      <div style={{ position: 'sticky', top: 0, zIndex: 50 }}>
+        {/* Header */}
+        <div style={{
+          backgroundColor: '#1E8449', padding: '1rem 1.5rem',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+        }}>
+          <div>
+            <h1 style={{ fontWeight: 900, fontSize: '1.25rem', color: 'white' }}>
+              📚 Dashboard Guru
+            </h1>
+            <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.8)',
+                        fontWeight: 600 }}>
+              Halo, {user?.namaLengkap}!
+            </p>
+          </div>
+          <button onClick={logout}
+            style={{
+              padding: '0.5rem 1rem', borderRadius: '0.75rem',
+              backgroundColor: 'rgba(255,255,255,0.15)', color: 'white',
+              fontWeight: 700, fontSize: '0.875rem', border: 'none', cursor: 'pointer'
+            }}>
+            Keluar
+          </button>
         </div>
-        <button onClick={logout}
-          style={{
-            padding: '0.5rem 1rem', borderRadius: '0.75rem',
-            backgroundColor: 'rgba(255,255,255,0.15)', color: 'white',
-            fontWeight: 700, fontSize: '0.875rem', border: 'none', cursor: 'pointer'
-          }}>
-          Keluar
-        </button>
-      </div>
 
-      {/* Navigasi Cepat Guru */}
-      <div style={{ backgroundColor: '#166635', padding: '0.6rem 1.5rem',
-                    display: 'flex', gap: '0.5rem', overflowX: 'auto' }}>
-        <button
-          onClick={() => navigate('/dashboard-guru/soal')}
-          style={{
-            padding: '0.4rem 1rem', borderRadius: '0.65rem',
-            backgroundColor: 'rgba(255,255,255,0.15)', color: 'white',
-            fontWeight: 700, fontSize: '0.8rem', border: 'none', cursor: 'pointer',
-            whiteSpace: 'nowrap'
-          }}>
-          📝 Manajemen Soal
-        </button>
+        {/* Navigasi Cepat Guru */}
+        <div style={{ backgroundColor: '#166635', padding: '0.6rem 1.5rem',
+                      display: 'flex', gap: '0.5rem', overflowX: 'auto' }}>
+          <button
+            onClick={() => navigate('/dashboard-guru/soal')}
+            style={{
+              padding: '0.4rem 1rem', borderRadius: '0.65rem',
+              backgroundColor: 'rgba(255,255,255,0.15)', color: 'white',
+              fontWeight: 700, fontSize: '0.8rem', border: 'none', cursor: 'pointer',
+              whiteSpace: 'nowrap'
+            }}>
+            📝 Manajemen Soal
+          </button>
+        </div>
       </div>
+      {/* AKHIR KELOMPOK HEADER STICKY */}
 
       <div style={{ maxWidth: '56rem', margin: '0 auto', padding: '1.5rem 1rem' }}>
 

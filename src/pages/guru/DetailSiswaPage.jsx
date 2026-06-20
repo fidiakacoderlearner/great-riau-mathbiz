@@ -251,7 +251,7 @@ function AnalisaAI({ namaSiswa, stats }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
         <div>
           <h3 style={{ fontWeight: 900, color: '#8E44AD', marginBottom: '0.1rem' }}>🤖 Analisis AI</h3>
-          <p style={{ fontSize: '0.72rem', color: '#bbb', fontWeight: 600 }}>Menggunakan AI untuk menganalisis performa sesi ini</p>
+          <p style={{ fontSize: '0.72rem', color: '#bbb', fontWeight: 600 }}>Menggunakan AI untuk menganalisis performa murid pada permainan ini</p>
         </div>
         <button onClick={handleAnalisa} disabled={loading} style={{ padding: '0.6rem 1.25rem', borderRadius: '0.75rem', backgroundColor: loading ? '#ddd' : '#8E44AD', color: loading ? '#aaa' : 'white', fontWeight: 700, fontSize: '0.875rem', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap' }}>
           {loading ? '⏳ Menganalisis...' : sudahDi ? '🔄 Analisis Ulang' : '✨ Analisis Sekarang'}
@@ -397,27 +397,22 @@ function DetailSiswaPage() {
 
   return (
     <div style={{ minHeight: '100dvh', backgroundColor: '#FDFBE4' }}>
-      {/* Header */}
-      <div style={{ backgroundColor: '#3498DB', padding: '1rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-        <button onClick={() => navigate(`/dashboard-guru/kelas/${kelasId}`)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'white', fontSize: '1.25rem', fontWeight: 700 }}>
-          ←
-        </button>
-        <div>
-          <h1 style={{ fontWeight: 900, fontSize: '1.25rem', color: 'white' }}>{namaSiswa}</h1>
-          <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.8)', fontWeight: 600 }}>{permainanList.length} kali permainan</p>
+      
+      {/* ── KELOMPOK HEADER & TAB STICKY ── */}
+      <div style={{ position: 'sticky', top: 0, zIndex: 50 }}>
+        {/* Header */}
+        <div style={{ backgroundColor: '#3498DB', padding: '1rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <button onClick={() => navigate(`/dashboard-guru/kelas/${kelasId}`)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'white', fontSize: '1.25rem', fontWeight: 700 }}>
+            ←
+          </button>
+          <div>
+            <h1 style={{ fontWeight: 900, fontSize: '1.25rem', color: 'white' }}>{namaSiswa}</h1>
+            <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.8)', fontWeight: 600 }}>{permainanList.length} kali permainan</p>
+          </div>
         </div>
-      </div>
 
-      {loading ? (
-        <p style={{ textAlign: 'center', color: '#aaa', padding: '2rem', fontWeight: 600 }}>Memuat data...</p>
-      ) : permainanList.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '3rem' }}>
-          <p style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🎮</p>
-          <p style={{ fontWeight: 700, color: '#aaa' }}>Siswa ini belum pernah bermain.</p>
-        </div>
-      ) : (
-        <>
-          {/* ── Tab Permainan ── */}
+        {/* Tab Permainan (Ikut menempel tepat di bawah header jika data sudah siap) */}
+        {!loading && permainanList.length > 0 && (
           <div style={{ overflowX: 'auto', backgroundColor: 'white', borderBottom: '2px solid #eee' }}>
             <div style={{ display: 'flex', padding: '0.5rem 1rem', gap: '0.5rem', minWidth: 'max-content' }}>
               {permainanList.map((p, i) => (
@@ -431,112 +426,121 @@ function DetailSiswaPage() {
               ))}
             </div>
           </div>
+        )}
+      </div>
 
-          {/* ── Konten Tab ── */}
-          {stats && (
-            <div style={{ maxWidth: '56rem', margin: '0 auto', padding: '1.5rem 1rem' }}>
-              
-              {/* Status + Info Permainan */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
-                <StatusPermainan status={permainanAktif.status} />
-                <span style={{ fontSize: '0.8rem', color: '#aaa', fontWeight: 600 }}>
-                  {stats.semuaRun.length} run selesai
-                  {permainanAktif.started_at && ` · Mulai: ${new Date(permainanAktif.started_at).toLocaleDateString('id-ID')}`}
-                  {permainanAktif.finished_at && ` · Selesai: ${new Date(permainanAktif.finished_at).toLocaleDateString('id-ID')}`}
-                </span>
+      {/* ── KONTEN UTAMA (DI BAWAH HEADER & TAB) ── */}
+      {loading ? (
+        <p style={{ textAlign: 'center', color: '#aaa', padding: '2rem', fontWeight: 600 }}>Memuat data...</p>
+      ) : permainanList.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '3rem' }}>
+          <p style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🎮</p>
+          <p style={{ fontWeight: 700, color: '#aaa' }}>Siswa ini belum pernah bermain.</p>
+        </div>
+      ) : (
+        stats && (
+          <div style={{ maxWidth: '56rem', margin: '0 auto', padding: '1.5rem 1rem' }}>
+            
+            {/* Status + Info Permainan */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
+              <StatusPermainan status={permainanAktif.status} />
+              <span style={{ fontSize: '0.8rem', color: '#aaa', fontWeight: 600 }}>
+                {stats.semuaRun.length} run selesai
+                {permainanAktif.started_at && ` · Mulai: ${new Date(permainanAktif.started_at).toLocaleDateString('id-ID')}`}
+                {permainanAktif.finished_at && ` · Selesai: ${new Date(permainanAktif.finished_at).toLocaleDateString('id-ID')}`}
+              </span>
+            </div>
+
+            {stats.semuaRun.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '2rem', backgroundColor: 'white', borderRadius: '1.25rem', border: '2px dashed #ddd' }}>
+                <p style={{ fontWeight: 700, color: '#aaa' }}>Belum ada run yang diselesaikan pada permainan ini.</p>
               </div>
-
-              {stats.semuaRun.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '2rem', backgroundColor: 'white', borderRadius: '1.25rem', border: '2px dashed #ddd' }}>
-                  <p style={{ fontWeight: 700, color: '#aaa' }}>Belum ada run yang diselesaikan pada permainan ini.</p>
+            ) : (
+              <>
+                {/* Statistik Utama */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem', marginBottom: '1.25rem' }} className="md:grid-cols-4">
+                  {[
+                    { label: 'Total XP',         nilai: `⭐ ${stats.totalXp}`, warna: '#F39C12' },
+                    { label: 'Total Pendapatan',  nilai: `Rp${(stats.totalPendapatan/1000).toFixed(0)}k`, warna: '#1E8449' },
+                    { label: 'Akurasi Jawaban',   nilai: `${stats.akurasi}%`, warna: '#3498DB' },
+                    { label: 'Run Selesai',       nilai: `${stats.semuaRun.length}/5`, warna: '#C0392B' },
+                  ].map((item, i) => (
+                    <div key={i} style={{ backgroundColor: 'white', borderRadius: '1rem', padding: '1rem', textAlign: 'center', border: `2px solid ${item.warna}` }}>
+                      <p style={{ fontSize: '0.7rem', fontWeight: 700, color: '#888', marginBottom: '0.25rem' }}>{item.label}</p>
+                      <p style={{ fontWeight: 900, fontSize: '1.25rem', color: item.warna }}>{item.nilai}</p>
+                    </div>
+                  ))}
                 </div>
-              ) : (
-                <>
-                  {/* Statistik Utama */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem', marginBottom: '1.25rem' }} className="md:grid-cols-4">
-                    {[
-                      { label: 'Total XP',         nilai: `⭐ ${stats.totalXp}`, warna: '#F39C12' },
-                      { label: 'Total Pendapatan',  nilai: `Rp${(stats.totalPendapatan/1000).toFixed(0)}k`, warna: '#1E8449' },
-                      { label: 'Akurasi Jawaban',   nilai: `${stats.akurasi}%`, warna: '#3498DB' },
-                      { label: 'Run Selesai',       nilai: `${stats.semuaRun.length}/5`, warna: '#C0392B' },
-                    ].map((item, i) => (
-                      <div key={i} style={{ backgroundColor: 'white', borderRadius: '1rem', padding: '1rem', textAlign: 'center', border: `2px solid ${item.warna}` }}>
-                        <p style={{ fontSize: '0.7rem', fontWeight: 700, color: '#888', marginBottom: '0.25rem' }}>{item.label}</p>
-                        <p style={{ fontWeight: 900, fontSize: '1.25rem', color: item.warna }}>{item.nilai}</p>
-                      </div>
-                    ))}
+
+                {/* ── INTEGRASI ANALISA AI ── */}
+                <AnalisaAI namaSiswa={namaSiswa} stats={stats.statsAI} />
+
+                {/* Radar + Metrik */}
+                <div className="flex flex-col md:flex-row gap-3 mb-4" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                  <div style={{ flex: 1, backgroundColor: 'white', borderRadius: '1.25rem', padding: '1.25rem', border: '2px solid #ddd' }}>
+                    <h3 style={{ fontWeight: 900, color: '#333', marginBottom: '0.5rem' }}>📊 Profil Belajar</h3>
+                    <RadarChart kecepatan={stats.kecepatanScore} akurasi={stats.akurasiScore} kemandirian={stats.kemandirianScore} pemahamanLP={stats.pemahamanLPScore} konsistensi={stats.konsistensiScore} />
                   </div>
 
-                  {/* ── INTEGRASI ANALISA AI ── */}
-                  <AnalisaAI namaSiswa={namaSiswa} stats={stats.statsAI} />
-
-                  {/* Radar + Metrik */}
-                  <div className="flex flex-col md:flex-row gap-3 mb-4" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.25rem' }}>
-                    <div style={{ flex: 1, backgroundColor: 'white', borderRadius: '1.25rem', padding: '1.25rem', border: '2px solid #ddd' }}>
-                      <h3 style={{ fontWeight: 900, color: '#333', marginBottom: '0.5rem' }}>📊 Profil Belajar</h3>
-                      <RadarChart kecepatan={stats.kecepatanScore} akurasi={stats.akurasiScore} kemandirian={stats.kemandirianScore} pemahamanLP={stats.pemahamanLPScore} konsistensi={stats.konsistensiScore} />
-                    </div>
-
-                    <div style={{ flex: 1, backgroundColor: 'white', borderRadius: '1.25rem', padding: '1.25rem', border: '2px solid #ddd' }}>
-                      <h3 style={{ fontWeight: 900, color: '#333', marginBottom: '0.75rem' }}>📋 Detail Metrik</h3>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        {[
-                          { label: 'Kecepatan', nilai: stats.kecepatanScore, ket: 'Kecepatan menjawab soal', detail: `Rata-rata ${stats.rataWaktuMenjawab} detik per soal` },
-                          { label: 'Akurasi', nilai: stats.akurasiScore, ket: '% jawaban benar', detail: `${stats.jawabanBenar} benar dari ${stats.totalJawaban} soal` },
-                          { label: 'Mandiri', nilai: stats.kemandirianScore, ket: 'Jarang pakai hint', detail: `${stats.hintDipakai} hint dipakai dari ${stats.totalJawaban} hint tersedia` },
-                          { label: 'Pemahaman SPtLDV', nilai: stats.pemahamanLPScore, ket: 'Pendapatan vs optimal', detail: `Aktual Rp${stats.rataAktual.toLocaleString('id-ID')} dari potensi Rp${stats.rataOptimal.toLocaleString('id-ID')}` },
-                          { label: 'Konsistensi', nilai: stats.konsistensiScore, ket: 'Stabilitas antar run', detail: `Berdasarkan variansi XP` },
-                        ].map((item, i) => (
-                          <div key={i}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
-                              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#555' }}>{item.label}</span>
-                              <span style={{ fontSize: '0.8rem', fontWeight: 900, color: '#1E8449' }}>{item.nilai}/100</span>
-                            </div>
-                            <div style={{ height: '6px', backgroundColor: '#eee', borderRadius: '3px', overflow: 'hidden' }}>
-                              <div style={{ height: '100%', borderRadius: '3px', backgroundColor: item.nilai >= 70 ? '#1E8449' : item.nilai >= 40 ? '#F39C12' : '#C0392B', width: `${item.nilai}%`, transition: 'width 0.5s ease' }} />
-                            </div>
-                            <p style={{ fontSize: '0.65rem', color: '#3498DB', fontWeight: 600, marginTop: '0.15rem' }}>{item.detail}</p>
-                            <p style={{ fontSize: '0.6rem', color: '#bbb', fontWeight: 600, marginTop: '0.05rem' }}>{item.ket}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Grafik Pendapatan */}
-                  <div style={{ backgroundColor: 'white', borderRadius: '1.25rem', padding: '1.25rem', border: '2px solid #ddd', marginBottom: '0.75rem' }}>
-                    <h3 style={{ fontWeight: 900, color: '#1E8449', marginBottom: '0.25rem' }}>📈 Pendapatan per Run</h3>
-                    <BarChartSVG data={stats.semuaRun.map((r, i) => ({ labelKey: `R${i + 1}`, nilaiKey: Math.round((r.pendapatan ?? 0) / 1000) }))} warna="#1E8449" labelKey="labelKey" nilaiKey="nilaiKey" satuan="k" />
-                  </div>
-
-                  {/* Riwayat Run */}
-                  <div style={{ backgroundColor: 'white', borderRadius: '1.25rem', padding: '1.25rem', border: '2px solid #ddd' }}>
-                    <h3 style={{ fontWeight: 900, color: '#333', marginBottom: '0.75rem' }}>📋 Riwayat Run</h3>
+                  <div style={{ flex: 1, backgroundColor: 'white', borderRadius: '1.25rem', padding: '1.25rem', border: '2px solid #ddd' }}>
+                    <h3 style={{ fontWeight: 900, color: '#333', marginBottom: '0.75rem' }}>📋 Detail Metrik</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                      {stats.semuaRun.map((run, i) => (
-                        <div key={run.id} style={{ padding: '0.75rem 1rem', borderRadius: '0.75rem', backgroundColor: '#EAF4FB' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
-                            <span style={{ fontWeight: 800, fontSize: '0.875rem' }}>Run {i + 1} — {run.produk_a?.nama} + {run.produk_b?.nama}</span>
-                            <span style={{ fontWeight: 900, color: '#1E8449', fontSize: '0.875rem' }}>Rp{(run.pendapatan ?? 0).toLocaleString('id-ID')}</span>
+                      {[
+                        { label: 'Kecepatan', nilai: stats.kecepatanScore, ket: 'Kecepatan menjawab soal', detail: `Rata-rata ${stats.rataWaktuMenjawab} detik per soal` },
+                        { label: 'Akurasi', nilai: stats.akurasiScore, ket: '% jawaban burners', detail: `${stats.jawabanBenar} benar dari ${stats.totalJawaban} soal` },
+                        { label: 'Mandiri', nilai: stats.kemandirianScore, ket: 'Jarang pakai hint', detail: `${stats.hintDipakai} hint dipakai dari ${stats.totalJawaban} hint tersedia` },
+                        { label: 'Pemahaman SPtLDV', nilai: stats.pemahamanLPScore, ket: 'Pendapatan vs optimal', detail: `Aktual Rp${stats.rataAktual.toLocaleString('id-ID')} dari potensi Rp${stats.rataOptimal.toLocaleString('id-ID')}` },
+                        { label: 'Konsistensi', nilai: stats.konsistensiScore, ket: 'Stabilitas antar run', detail: `Berdasarkan variansi XP` },
+                      ].map((item, i) => (
+                        <div key={i}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
+                            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#555' }}>{item.label}</span>
+                            <span style={{ fontSize: '0.8rem', fontWeight: 900, color: '#1E8449' }}>{item.nilai}/100</span>
                           </div>
-                          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                            {[
-                              { label: '⏱', nilai: formatWaktu(run.waktu_bermain) },
-                              { label: '⭐', nilai: `${run.xp_run} XP` },
-                              { label: '🎯', nilai: `Optimal: Rp${(run.pendapatan_optimal ?? 0).toLocaleString('id-ID')}` },
-                            ].map((item, j) => (
-                              <span key={j} style={{ fontSize: '0.75rem', color: '#888', fontWeight: 600 }}>{item.label} {item.nilai}</span>
-                            ))}
+                          <div style={{ height: '6px', backgroundColor: '#eee', borderRadius: '3px', overflow: 'hidden' }}>
+                            <div style={{ height: '100%', borderRadius: '3px', backgroundColor: item.nilai >= 70 ? '#1E8449' : item.nilai >= 40 ? '#F39C12' : '#C0392B', width: `${item.nilai}%`, transition: 'width 0.5s ease' }} />
                           </div>
+                          <p style={{ fontSize: '0.65rem', color: '#3498DB', fontWeight: 600, marginTop: '0.15rem' }}>{item.detail}</p>
+                          <p style={{ fontSize: '0.6rem', color: '#bbb', fontWeight: 600, marginTop: '0.05rem' }}>{item.ket}</p>
                         </div>
                       ))}
                     </div>
                   </div>
-                </>
-              )}
-            </div>
-          )}
-        </>
+                </div>
+
+                {/* Grafik Pendapatan */}
+                <div style={{ backgroundColor: 'white', borderRadius: '1.25rem', padding: '1.25rem', border: '2px solid #ddd', marginBottom: '0.75rem' }}>
+                  <h3 style={{ fontWeight: 900, color: '#1E8449', marginBottom: '0.25rem' }}>📈 Pendapatan per Run</h3>
+                  <BarChartSVG data={stats.semuaRun.map((r, i) => ({ labelKey: `R${i + 1}`, nilaiKey: Math.round((r.pendapatan ?? 0) / 1000) }))} warna="#1E8449" labelKey="labelKey" nilaiKey="nilaiKey" satuan="k" />
+                </div>
+
+                {/* Riwayat Run */}
+                <div style={{ backgroundColor: 'white', borderRadius: '1.25rem', padding: '1.25rem', border: '2px solid #ddd' }}>
+                  <h3 style={{ fontWeight: 900, color: '#333', marginBottom: '0.75rem' }}>📋 Riwayat Run</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    {stats.semuaRun.map((run, i) => (
+                      <div key={run.id} style={{ padding: '0.75rem 1rem', borderRadius: '0.75rem', backgroundColor: '#EAF4FB' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
+                          <span style={{ fontWeight: 800, fontSize: '0.875rem' }}>Run {i + 1} — {run.produk_a?.nama} + {run.produk_b?.nama}</span>
+                          <span style={{ fontWeight: 900, color: '#1E8449', fontSize: '0.875rem' }}>Rp{(run.pendapatan ?? 0).toLocaleString('id-ID')}</span>
+                        </div>
+                        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                          {[
+                            { label: '⏱', nilai: formatWaktu(run.waktu_bermain) },
+                            { label: '⭐', nilai: `${run.xp_run} XP` },
+                            { label: '🎯', nilai: `Optimal: Rp${(run.pendapatan_optimal ?? 0).toLocaleString('id-ID')}` },
+                          ].map((item, j) => (
+                            <span key={j} style={{ fontSize: '0.75rem', color: '#888', fontWeight: 600 }}>{item.label} {item.nilai}</span>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        )
       )}
     </div>
   )
