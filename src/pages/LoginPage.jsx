@@ -13,6 +13,8 @@ function parseError(message) {
     return 'Password minimal 6 karakter.'
   if (message.includes('Kode kelas tidak ditemukan'))
     return 'Kode kelas tidak valid.'
+  if (message.includes('Unable to validate email address: invalid format'))
+    return 'Format email tidak valid.'
   return message
 }
 

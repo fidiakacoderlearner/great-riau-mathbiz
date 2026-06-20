@@ -25,12 +25,12 @@ function StatusBadge({ produkSelesai }) {
       <span style={{ padding: '0.2rem 0.6rem', borderRadius: '0.5rem',
                      backgroundColor: '#D5F5E3', color: '#1E8449',
                      fontSize: '0.7rem', fontWeight: 700 }}>
-        Selesai ✅
+        Selesai
       </span>
     )
   return (
     <span style={{ padding: '0.2rem 0.6rem', borderRadius: '0.5rem',
-                   backgroundColor: '#FEF9E7', color: '#F39C12',
+                   backgroundColor: '#fef9e7', color: '#F39C12',
                    fontSize: '0.7rem', fontWeight: 700 }}>
       Sedang Bermain
     </span>
@@ -97,6 +97,7 @@ function DetailKelasPage() {
 
       {/* Header */}
       <div style={{
+        position: 'sticky', top: 0, zIndex: 50,
         backgroundColor: '#1E8449', padding: '1rem 1.5rem',
         display: 'flex', alignItems: 'center', gap: '1rem'
       }}>
@@ -189,7 +190,7 @@ function DetailKelasPage() {
         {!loading && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {sorted.map(({ siswa, totalRun, totalXp, totalPendapatan,
-                           akurasi, produkSelesai, rataWaktuRun, persenHint }) => (
+                           akurasi, produkSelesai, rataWaktuRun, persenHint, jumlahPermainan}) => (
               <div key={siswa.id}
                 style={{
                   backgroundColor: 'white', borderRadius: '1rem',
@@ -219,6 +220,7 @@ function DetailKelasPage() {
                     { label: 'Produk',     nilai: `${produkSelesai}/10`                       },
                     { label: 'Run',        nilai: `${totalRun}x`                              },
                     { label: 'Hint',       nilai: `${persenHint}%`                            },
+                    { label: 'Jumlah Bermain', nilai: `${jumlahPermainan}x`                            },
                   ].map((item, i) => (
                     <div key={i} style={{ textAlign: 'center', minWidth: '50px' }}>
                       <p style={{ fontSize: '0.65rem', color: '#aaa',

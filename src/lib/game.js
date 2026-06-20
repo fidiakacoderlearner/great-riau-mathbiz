@@ -63,15 +63,82 @@ export async function fetchKaryawan() {
   }))
 }
 
+// ── Permainan ─────────────────────────────────────────────────────
+
+export async function createPermainan({ siswaId, kelasId }) {
+  // Hitung urutan permainan
+  const { count } = await supabase
+    .from('permainan')
+    .select('*', { count: 'exact', head: true })
+    .eq('siswa_id', siswaId)
+
+  const { data, error } = await supabase
+    .from('permainan')
+    .insert({
+      siswa_id:     siswaId,
+      kelas_id:     kelasId,
+      permainan_ke: (count ?? 0) + 1,
+      status:       'berjalan',
+    })
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+export async function updatePermainan(permainanId, {
+  totalRun, totalXp, totalPendapatan, status
+}) {
+  const { error } = await supabase
+    .from('permainan')
+    .update({
+      total_run:        totalRun,
+      total_xp:         totalXp,
+      total_pendapatan: totalPendapatan,
+      status,
+      finished_at: status !== 'berjalan'
+        ? new Date().toISOString() : null,
+    })
+    .eq('id', permainanId)
+
+  if (error) throw error
+}
+
+export async function fetchPermainanBySiswa(siswaId) {
+  const { data, error } = await supabase
+    .from('permainan')
+    .select(`
+      *,
+      sesi_bermain (
+        *,
+        run (
+          *,
+          produk_a:produk_a_id ( slug, nama, image_url ),
+          produk_b:produk_b_id ( slug, nama, image_url ),
+          jawaban_soal (*)
+        )
+      )
+    `)
+    .eq('siswa_id', siswaId)
+    .order('permainan_ke', { ascending: true })
+
+  if (error) throw error
+  return data
+}
+
 // ── Sesi Bermain ──────────────────────────────────────────────────
-export async function createSesi({ siswaId, kelasId = null, budgetAwal }) {
+export async function createSesi({
+  siswaId, kelasId = null, budgetAwal, permainanId = null
+}) {
   const { data, error } = await supabase
     .from('sesi_bermain')
     .insert({
-      siswa_id:    siswaId,
-      kelas_id:    kelasId,
-      budget_awal: budgetAwal,
-      status:      'aktif',
+      siswa_id:     siswaId,
+      kelas_id:     kelasId,
+      budget_awal:  budgetAwal,
+      status:       'aktif',
+      permainan_id: permainanId,
     })
     .select()
     .single()
@@ -263,9 +330,16 @@ export async function fetchStatistikKelas(kelasId) {
 
   const progressList = await Promise.all(
     siswaList.map(async siswa => {
-      const sesiList     = await fetchProgressSiswa(siswa.id)
-      const semuaRun     = sesiList.flatMap(s => s.run ?? [])
+      const sesiList = await fetchProgressSiswa(siswa.id)
+      const semuaRun = sesiList.flatMap(s => s.run ?? [])
       const semuaJawaban = semuaRun.flatMap(r => r.jawaban_soal ?? [])
+
+      // Hitung jumlah permainan
+      const { count: jumlahPermainan } = await supabase
+        .from('permainan')
+        .select('*', { count: 'exact', head: true })
+        .eq('siswa_id', siswa.id)
+        .eq('kelas_id', kelasId)
 
       const totalXp         = semuaRun.reduce((s, r) => s + (r.xp_run ?? 0), 0)
       const totalPendapatan = semuaRun.reduce((s, r) => s + (r.pendapatan ?? 0), 0)
@@ -274,7 +348,9 @@ export async function fetchStatistikKelas(kelasId) {
       const jawabanBenar    = semuaJawaban.filter(j => j.jawaban_benar).length
       const hintDipakai     = semuaJawaban.filter(j => j.hint_dipakai).length
       const produkSelesai   = new Set(
-        semuaRun.flatMap(r => [r.produk_a?.slug, r.produk_b?.slug].filter(Boolean))
+        semuaRun.flatMap(r =>
+          [r.produk_a?.slug, r.produk_b?.slug].filter(Boolean)
+        )
       ).size
 
       return {
@@ -283,6 +359,7 @@ export async function fetchStatistikKelas(kelasId) {
         totalXp,
         totalPendapatan,
         totalWaktu,
+        jumlahPermainan: jumlahPermainan ?? 0,
         akurasi:        totalJawaban > 0
                           ? Math.round((jawabanBenar / totalJawaban) * 100)
                           : 0,
@@ -315,33 +392,42 @@ export async function fetchKelasIdSiswa(siswaId) {
 }
 
 // ── Load Progress Siswa dari Supabase ─────────────────────────────
-export async function fetchGameProgress(siswaId) {
-  const { data: sesiList, error } = await supabase
-    .from('sesi_bermain')
+export async function fetchGameProgress(siswaId, permainanId = null) {
+  if (!permainanId) {
+    return { allDoneIds: [], budget: 600000, runHistory: [], permainanId: null }
+  }
+
+  const { data: permainan, error } = await supabase
+    .from('permainan')
     .select(`
       *,
-      run (
+      sesi_bermain (
         *,
-        produk_a:produk_a_id ( slug, nama, image_url ),
-        produk_b:produk_b_id ( slug, nama, image_url )
+        run (
+          *,
+          produk_a:produk_a_id ( slug, nama, image_url ),
+          produk_b:produk_b_id ( slug, nama, image_url )
+        )
       )
     `)
+    .eq('id', permainanId)
     .eq('siswa_id', siswaId)
-    .eq('status', 'selesai')
-    .order('started_at', { ascending: true })
+    .single()
 
-  if (error) throw error
+  // Kalau tidak ditemukan atau sudah selesai/tidak_selesai, mulai segar
+  if (error || !permainan || permainan.status !== 'berjalan') {
+    return { allDoneIds: [], budget: 600000, runHistory: [], permainanId: null }
+  }
 
-  const semuaRun = sesiList
+  const semuaRun = permainan.sesi_bermain
     .flatMap(s => s.run ?? [])
     .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
 
   // Rekonstruksi allDoneIds dari produk yang sudah dikerjakan
   const allDoneIds = [...new Set(
-    semuaRun.flatMap(r => [
-      r.produk_a?.slug,
-      r.produk_b?.slug,
-    ].filter(Boolean))
+    semuaRun.flatMap(r =>
+      [r.produk_a?.slug, r.produk_b?.slug].filter(Boolean)
+    )
   )]
 
   // Hitung budget saat ini
@@ -368,7 +454,7 @@ export async function fetchGameProgress(siswaId) {
     karyawanDisewa: r.karyawan_disewa ?? [],
   }))
 
-  return { allDoneIds, budget, runHistory }
+  return { allDoneIds, budget, runHistory, permainanId }
 }
 
 // ── Keluarkan Siswa dari Kelas ────────────────────────────────────

@@ -65,7 +65,7 @@ function DapurProduksiPage() {
   const soalList = produkA && produkB
     ? [
         generateSoalWaktu(produkA, produkB, waktuTersedia),   // ← tambah waktuTersedia
-        generateSoalModal(produkA, produkB),
+        generateSoalModal(produkA, produkB, budgetProduksi),
       ]
     : []
 

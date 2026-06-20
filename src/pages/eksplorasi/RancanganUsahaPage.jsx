@@ -277,7 +277,7 @@ function RancanganUsahaPage() {
 
             <div className="flex flex-col md:flex-row gap-3 mb-6">
               {karyawanList.map(k => {
-                const harga       = getHargaKaryawan(k.level, runKe,karyawanList)
+                const harga       = getHargaKaryawan(k.level, runKe, karyawanList)
                 const bisa        = karyawanSesi.length < MAX_KARYAWAN &&
                                     budgetProduksi - harga >= 0
                 const sudahPenuh  = karyawanSesi.length >= MAX_KARYAWAN
