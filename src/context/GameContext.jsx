@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { onAuthStateChange, logout as supabaseLogout } from '../lib/auth'
 import {
-  fetchProduk, fetchKaryawan, fetchKelasIdSiswa,
+  fetchProduk, fetchKaryawan, fetchKelasIdSiswa, salinProdukKeKelas,
   createSesi, updateSesi, createRun,
 } from '../lib/game'
 import {
@@ -89,18 +89,30 @@ export function GameProvider({ children }) {
 
   // ── Load Produk & Karyawan dari Supabase ─────────────────────────
   useEffect(() => {
+    // Tunggu sampai user sudah diketahui (bukan loading auth)
+    if (authLoading) return
+
     async function loadData() {
       try {
-        // Ambil kelasId siswa dulu supaya produk yang diload sesuai soal kelasnya
         let kelasId = null
-        if (user?.role === 'siswa') {
+
+        if (user?.role === 'siswa' && user?.id) {
           kelasId = await fetchKelasIdSiswa(user.id)
+
+          if (kelasId) {
+            // Pastikan kelas sudah punya salinan produk, kalau belum salin dulu
+            await salinProdukKeKelas(kelasId)
+          }
         }
 
-        const [produk, karyawan] = await Promise.all([
-          fetchProduk(kelasId),
-          fetchKaryawan(),
-        ])
+        let produk = await fetchProduk(kelasId)
+
+        // Fallback: kalau produk kelas kosong, pakai template global
+        if (produk.length === 0) {
+          produk = await fetchProduk(null)
+        }
+
+        const karyawan = await fetchKaryawan()
         setProdukList(produk)
         setKaryawanList(karyawan)
       } catch (err) {
@@ -110,7 +122,7 @@ export function GameProvider({ children }) {
       }
     }
     loadData()
-  }, [user?.id, user?.role])
+  }, [user?.id, user?.role, authLoading])
 
   // ── Sync localStorage ────────────────────────────────────────────
   useEffect(() => { localStorage.setItem(LS.PILIH_IDS,    JSON.stringify(pilihIds))    }, [pilihIds])
