@@ -9,7 +9,7 @@ import {
 } from '../../lib/game'
 
 const TIPE_OPTIONS = [
-  { value: 'pilihan_ganda', label: 'Pilihan Ganda' },
+  { value: 'pilihan_ganda',  label: 'Pilihan Ganda' },
 ]
 
 function Label({ children }) {
@@ -89,10 +89,6 @@ function FormEdit({ produk, onClose, onSaved }) {
           label: p.label,
         }))
         jawabanVal = isNaN(jawaban) ? jawaban : Number(jawaban)
-      } else if (tipeSoal === 'pertidaksamaan' && jawaban.trim()) {
-        try { jawabanVal = JSON.parse(jawaban) } catch {
-          setError('Format JSON jawaban tidak valid.'); setSaving(false); return
-        }
       }
 
       const resepArr = resepText.split('\n').map(s => s.trim()).filter(Boolean)
@@ -251,28 +247,6 @@ function FormEdit({ produk, onClose, onSaved }) {
               </>
             )}
 
-            {tipeSoal === 'essay' && (
-              <>
-                <Label>Kunci Jawaban</Label>
-                <textarea value={jawaban} onChange={e => setJawaban(e.target.value)}
-                  rows={2} placeholder="Jawaban yang benar..."
-                  style={{ ...inputStyle, resize: 'vertical' }} />
-              </>
-            )}
-
-            {tipeSoal === 'pertidaksamaan' && (
-              <>
-                <Label>Jawaban (JSON)</Label>
-                <textarea value={jawaban} onChange={e => setJawaban(e.target.value)}
-                  rows={3} placeholder={'{\n  "a": "60",\n  "b": "40",\n  "c": "≤"\n}'}
-                  style={{ ...inputStyle, fontFamily: 'monospace', fontSize: '0.8rem', resize: 'vertical' }} />
-                <p style={{ fontSize: '0.72rem', color: '#aaa', fontWeight: 600,
-                            marginTop: '-0.75rem', marginBottom: '1rem' }}>
-                  a, b = koefisien; c = tanda (≤ / ≥ / &lt; / &gt;)
-                </p>
-              </>
-            )}
-
             <Label>Hint (opsional)</Label>
             <textarea value={hint} onChange={e => setHint(e.target.value)}
               rows={2} placeholder="Petunjuk untuk siswa yang kesulitan..."
@@ -410,7 +384,6 @@ export default function ManajemenSoalPage() {
     <div style={{ minHeight: '100dvh', backgroundColor: '#FDFBE4' }}>
       {/* Header */}
       <div style={{
-        position: 'sticky', top: 0, zIndex: 50,
         backgroundColor: '#1E8449', padding: '1rem 1.5rem',
         display: 'flex', alignItems: 'center', gap: '1rem'
       }}>
