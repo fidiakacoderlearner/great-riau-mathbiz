@@ -98,7 +98,7 @@ function App() {
         } />
         
         {/* Route Diperbarui: Manajemen Soal per Kelas */}
-        <Route path="/dashboard-guru/kelas/:kelasId/soal" element={
+        <Route path="/dashboard-guru/soal" element={
           <RequireAuth allowedRole="guru"><ManajemenSoalPage /></RequireAuth>
         } />
 
