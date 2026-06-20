@@ -22,6 +22,7 @@ function SlotBox({ nilai, onClick, disabled }) {
 
 function PertidaksamaanCard({ soal, onSelesai }) {
   const { tambahXP, catatJawaban } = useGame()
+  const _catatJawaban = typeof catatJawaban === 'function' ? catatJawaban : () => {}
 
   // Ref — selalu baca nilai terbaru
   const hintRef     = useRef(false)
@@ -111,7 +112,7 @@ function PertidaksamaanCard({ soal, onSelesai }) {
       tambahXP(xpDapat)
 
       // ← catat jawaban benar
-      catatJawaban({
+      _catatJawaban({
         produkDbId:    null,
         tipeSoal,
         jawabanBenar:  true,
@@ -129,7 +130,7 @@ function PertidaksamaanCard({ soal, onSelesai }) {
 
       // ← catat jawaban salah saat percobaan habis
       if (sisa === 0) {
-        catatJawaban({
+        _catatJawaban({
           produkDbId:    null,
           tipeSoal,
           jawabanBenar:  false,

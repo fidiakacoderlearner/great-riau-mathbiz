@@ -7,6 +7,7 @@ import FeedbackPopup from './FeedbackPopup'
 
 function SoalCard({ soal, onSelesai }) {
   const { tambahXP, catatJawaban } = useGame()
+  const _catatJawaban = typeof catatJawaban === 'function' ? catatJawaban : () => {}
 
   // Ref — selalu baca nilai terbaru
   const hintRef      = useRef(false)
@@ -63,7 +64,7 @@ function SoalCard({ soal, onSelesai }) {
       tambahXP(xpDapat)
 
       // ← catat jawaban benar
-      catatJawaban({
+      _catatJawaban({
         produkDbId:    soal.dbId ?? null,
         tipeSoal:      soal.tipeSoal === 'A' ? 'rancangan_a' : 'rancangan_b',
         jawabanBenar:  true,
@@ -81,7 +82,7 @@ function SoalCard({ soal, onSelesai }) {
 
       // ← catat jawaban salah saat percobaan habis
       if (sisa === 0) {
-        catatJawaban({
+        _catatJawaban({
           produkDbId:    soal.dbId ?? null,
           tipeSoal:      soal.tipeSoal === 'A' ? 'rancangan_a' : 'rancangan_b',
           jawabanBenar:  false,
