@@ -105,6 +105,17 @@ function GameHubPage() {
               style={{ backgroundColor: '#1E8449', border: 'none', cursor: 'pointer' }}>
               Review Perjalananmu
             </button>
+            {/* ── TOMBOL BARU: PACU JALUR (DESKTOP) ── */}
+            <button onClick={() => navigate('/pacu-jalur')}
+              className="w-full py-4 rounded-2xl text-white font-bold text-lg
+                        shadow-lg active:scale-95 transition-transform"
+              style={{ backgroundColor: '#3498DB', border: 'none', cursor: 'pointer' }}>
+              Balap Pacu Jalur
+              <span style={{ display: 'block', fontSize: '0.75rem',
+                            opacity: 0.9, fontWeight: 600, marginTop: '0.25rem' }}>
+                Segera Hadir! Mode Quiz Multiplayer
+              </span>
+            </button>
             <div className="flex gap-2 mt-1">
               <button onClick={logout}
                 className="flex-1 py-3 rounded-2xl font-bold text-sm active:scale-95"
@@ -196,6 +207,17 @@ function GameHubPage() {
                         shadow-lg active:scale-95 transition-transform"
               style={{ backgroundColor: '#1E8449', border: 'none', cursor: 'pointer' }}>
               Review Perjalananmu
+            </button>
+            {/* ── TOMBOL BARU: PACU JALUR (MOBILE) ── */}
+            <button onClick={() => navigate('/pacu-jalur')}
+              className="w-full py-4 rounded-2xl text-white font-bold text-lg
+                        shadow-lg active:scale-95 transition-transform"
+              style={{ backgroundColor: '#3498DB', border: 'none', cursor: 'pointer' }}>
+              Balap Pacu Jalur
+              <span style={{ display: 'block', fontSize: '0.75rem',
+                            opacity: 0.9, fontWeight: 600, marginTop: '0.25rem' }}>
+                Segera Hadir! Mode Quiz Multiplayer
+              </span>
             </button>
             <div className="flex gap-2 mt-1">
               <button onClick={logout}
