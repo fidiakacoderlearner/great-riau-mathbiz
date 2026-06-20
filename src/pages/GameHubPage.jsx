@@ -32,7 +32,7 @@ function GameHubPage() {
     <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column',
                   backgroundColor: '#FDFBE4' }}>
 
-      {/* ── Desktop: Split Screen (sama seperti sebelumnya) ── */}
+      {/* ── Desktop: Split Screen ── */}
       <div className="hidden md:flex flex-1 overflow-hidden">
 
         {/* Panel Kiri — Branding */}
@@ -74,8 +74,15 @@ function GameHubPage() {
               Jadilah Pengusaha Kue Tradisional Riau! Asah kemampuan matematikamu
               sambil membangun usaha yang menguntungkan.
             </p>
+
+            {/* ── PEMBATAS: MODE EKSPLORASI ── */}
+            <div className="flex items-center w-full gap-3 mt-2 mb-1">
+              <div className="h-px bg-gray-300 flex-1" />
+              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Mode Eksplorasi</span>
+              <div className="h-px bg-gray-300 flex-1" />
+            </div>
+
             {reviewUnlocked ? (
-              // Semua produk selesai — kunci eksplorasi
               <div className="w-full py-4 rounded-2xl text-center font-bold text-lg"
                 style={{ backgroundColor: '#ddd', color: '#646464',
                         borderRadius: '1rem' }}>
@@ -99,13 +106,21 @@ function GameHubPage() {
                 )}
               </button>
             )}
+            
             <button onClick={() => navigate('/review')}
               className="w-full py-4 rounded-2xl text-white font-bold text-lg
                         shadow-lg active:scale-95 transition-transform"
               style={{ backgroundColor: '#1E8449', border: 'none', cursor: 'pointer' }}>
               Review Perjalananmu
             </button>
-            {/* ── TOMBOL BARU: PACU JALUR (DESKTOP) ── */}
+
+            {/* ── PEMBATAS: MODE KOMPETISI ── */}
+            <div className="flex items-center w-full gap-3 mt-4 mb-1">
+              <div className="h-px bg-gray-300 flex-1" />
+              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Mode Tantangan</span>
+              <div className="h-px bg-gray-300 flex-1" />
+            </div>
+
             <button onClick={() => navigate('/pacu-jalur')}
               className="w-full py-4 rounded-2xl text-white font-bold text-lg
                         shadow-lg active:scale-95 transition-transform"
@@ -116,7 +131,9 @@ function GameHubPage() {
                 Segera Hadir! Mode Quiz Multiplayer
               </span>
             </button>
-            <div className="flex gap-2 mt-1">
+
+            {/* ── PEMBATAS: PENGATURAN AKUN ── */}
+            <div className="flex gap-2 mt-4">
               <button onClick={logout}
                 className="flex-1 py-3 rounded-2xl font-bold text-sm active:scale-95"
                 style={{ backgroundColor: '#eee', color: '#666',
@@ -134,7 +151,7 @@ function GameHubPage() {
         </div>
       </div>
 
-      {/* ── Mobile: Stack — SELURUH HALAMAN BISA SCROLL ── */}
+      {/* ── Mobile: Stack ── */}
       <div className="md:hidden flex flex-col">
 
         {/* Panel Branding Mobile */}
@@ -177,8 +194,15 @@ function GameHubPage() {
               Jadilah Pengusaha Kue Tradisional Riau! Asah kemampuan matematikamu
               sambil membangun usaha yang menguntungkan.
             </p>
+
+            {/* ── PEMBATAS: MODE EKSPLORASI (MOBILE) ── */}
+            <div className="flex items-center w-full gap-3 mt-2 mb-1">
+              <div className="h-px bg-gray-300 flex-1" />
+              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Mode Eksplorasi</span>
+              <div className="h-px bg-gray-300 flex-1" />
+            </div>
+
             {reviewUnlocked ? (
-              // Semua produk selesai — kunci eksplorasi
               <div className="w-full py-4 rounded-2xl text-center font-bold text-lg"
                 style={{ backgroundColor: '#ddd', color: '#646464',
                         borderRadius: '1rem' }}>
@@ -202,13 +226,21 @@ function GameHubPage() {
                 )}
               </button>
             )}
+            
             <button onClick={() => navigate('/review')}
               className="w-full py-4 rounded-2xl text-white font-bold text-lg
                         shadow-lg active:scale-95 transition-transform"
               style={{ backgroundColor: '#1E8449', border: 'none', cursor: 'pointer' }}>
               Review Perjalananmu
             </button>
-            {/* ── TOMBOL BARU: PACU JALUR (MOBILE) ── */}
+
+            {/* ── PEMBATAS: MODE KOMPETISI (MOBILE) ── */}
+            <div className="flex items-center w-full gap-3 mt-4 mb-1">
+              <div className="h-px bg-gray-300 flex-1" />
+              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Mode Tantangan</span>
+              <div className="h-px bg-gray-300 flex-1" />
+            </div>
+
             <button onClick={() => navigate('/pacu-jalur')}
               className="w-full py-4 rounded-2xl text-white font-bold text-lg
                         shadow-lg active:scale-95 transition-transform"
@@ -219,7 +251,9 @@ function GameHubPage() {
                 Segera Hadir! Mode Quiz Multiplayer
               </span>
             </button>
-            <div className="flex gap-2 mt-1">
+
+            {/* ── PEMBATAS: PENGATURAN AKUN (MOBILE) ── */}
+            <div className="flex gap-2 mt-4">
               <button onClick={logout}
                 className="flex-1 py-3 rounded-2xl font-bold text-sm active:scale-95"
                 style={{ backgroundColor: '#eee', color: '#666',
