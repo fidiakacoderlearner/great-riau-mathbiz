@@ -22,7 +22,7 @@ const LS = {
   BUDGET:        'griau_budget',
   RUN_HISTORY:   'griau_run_history',
   SESSION_START: 'griau_session_start',
-  RESET_AT:      'griau_reset_at',
+  PERMAINAN_ID:  'griau_permainan_id',
 }
 
 function safeLoad(key, fallback) {
@@ -53,6 +53,9 @@ export function GameProvider({ children }) {
   const [sessionStart, setSessionStart] = useState(() => safeLoad(LS.SESSION_START, null))
   const [karyawanSesi, setKaryawanSesi] = useState([])
   const [jawabanSementara, setJawabanSementara] = useState([])
+  const [permainanId, setPermainanId] = useState(
+    () => localStorage.getItem('griau_permainan_id') ?? null
+  )
 
   // ── Load Auth ─────────────────────────────────────────────────────
   useEffect(() => {
@@ -65,15 +68,12 @@ export function GameProvider({ children }) {
         if (userData.role === 'siswa') {
           try {
             const { fetchGameProgress } = await import('../lib/game')
-
-            const resetAt = localStorage.getItem(LS.RESET_AT)
-            const progress = await fetchGameProgress(
-              userData.id, 
-              resetAt ? parseInt(resetAt) : null
-            )
+            const storedPermainanId = localStorage.getItem('griau_permainan_id')
+            const progress = await fetchGameProgress(userData.id, storedPermainanId)
             setAllDoneIds(progress.allDoneIds)
             setBudget(progress.budget)
             setRunHistory(progress.runHistory)
+            setPermainanId(progress.permainanId)  // bisa null kalau permainan sudah selesai
           } catch (err) {
             console.error('Gagal load progress siswa:', err)
           }
@@ -120,6 +120,10 @@ export function GameProvider({ children }) {
     if (gamePhase) localStorage.setItem(LS.PHASE, JSON.stringify(gamePhase))
     else           localStorage.removeItem(LS.PHASE)
   }, [gamePhase])
+  useEffect(() => {
+    if (permainanId) localStorage.setItem(LS.PERMAINAN_ID, permainanId)
+    else             localStorage.removeItem(LS.PERMAINAN_ID)
+  }, [permainanId])
 
   // ── Derived ──────────────────────────────────────────────────────
   const produkTerpilih = pilihIds
@@ -220,13 +224,26 @@ export function GameProvider({ children }) {
 
     if (user) {
       try {
-        const { fetchKelasIdSiswa, saveJawaban } = await import('../lib/game')
+        const {
+          fetchKelasIdSiswa, saveJawaban,
+          createPermainan, updatePermainan
+        } = await import('../lib/game')
+
         const kelasId = await fetchKelasIdSiswa(user.id)
 
+        // Buat permainan baru kalau belum ada (run pertama)
+        let currentPermainanId = permainanId
+        if (!currentPermainanId) {
+          const p = await createPermainan({ siswaId: user.id, kelasId })
+          currentPermainanId = p.id
+          setPermainanId(p.id)
+        }
+
         const sesi = await createSesi({
-          siswaId:    user.id,
+          siswaId:      user.id,
           kelasId,
-          budgetAwal: budget,
+          budgetAwal:   budget,
+          permainanId:  currentPermainanId,
         })
 
         const runDb = await createRun({
@@ -248,7 +265,6 @@ export function GameProvider({ children }) {
           waktuBermain,
         })
 
-        // ← Simpan semua jawaban ke DB setelah run tersimpan
         if (jawabanSementara.length > 0) {
           await Promise.all(
             jawabanSementara.map(j => saveJawaban({
@@ -264,10 +280,33 @@ export function GameProvider({ children }) {
           )
         }
 
+        const newRunCount      = runHistory.length + 1
+        const newTotalXp       = totalXp + xpRun
+        const newTotalPendapatan = totalPendapatan + pendapatan
+
+        // Cek apakah permainan selesai (semua 10 produk)
+        const produkBaru   = [...new Set([
+          ...allDoneIds,
+          ...produkTerpilih.map(p => p.id)
+        ])]
+        const permainanSelesai = produkBaru.length >= produkList.length
+
+        await updatePermainan(currentPermainanId, {
+          totalRun:        newRunCount,
+          totalXp:         newTotalXp,
+          totalPendapatan: newTotalPendapatan,
+          status:          permainanSelesai ? 'selesai' : 'berjalan',
+        })
+
+        // Kalau permainan selesai, hapus dari localStorage
+        if (permainanSelesai) {
+          setPermainanId(null)
+        }
+
         await updateSesi(sesi.id, {
-          totalXp:         totalXp + xpRun,
-          totalPendapatan: totalPendapatan + pendapatan,
-          jumlahRun:       runHistory.length + 1,
+          totalXp:         newTotalXp,
+          totalPendapatan: newTotalPendapatan,
+          jumlahRun:       newRunCount,
           status:          'selesai',
         })
       } catch (err) {
@@ -290,7 +329,22 @@ export function GameProvider({ children }) {
   }
 
   // ── Reset ─────────────────────────────────────────────────────────
-  function resetAll() {
+  async function resetAll() {
+    // Opsi B: hanya simpan kalau sudah ada minimal 1 run
+    if (permainanId && user && runHistory.length > 0) {
+      try {
+        const { updatePermainan } = await import('../lib/game')
+        await updatePermainan(permainanId, {
+          totalRun:        runHistory.length,
+          totalXp:         totalXp,
+          totalPendapatan: totalPendapatan,
+          status:          'tidak_selesai',
+        })
+      } catch (err) {
+        console.error('Gagal tutup permainan:', err)
+      }
+    }
+
     setXp(0)
     setPilihIds([])
     setSelesaiIds([])
@@ -300,13 +354,9 @@ export function GameProvider({ children }) {
     setRunHistory([])
     setSessionStart(null)
     setKaryawanSesi([])
-    // Hapus semua LS kecuali RESET_AT
-    Object.entries(LS).forEach(([key, value]) => {
-      if (key !== 'RESET_AT') localStorage.removeItem(value)
-    })
-
-    // Set timestamp reset sekarang
-    localStorage.setItem(LS.RESET_AT, Date.now().toString())
+    setPermainanId(null)
+    setJawabanSementara([])
+    Object.values(LS).forEach(k => localStorage.removeItem(k))
   }
 
   // ── Auth Actions ──────────────────────────────────────────────────
