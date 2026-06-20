@@ -168,7 +168,7 @@ function AnalisaAI({ namaSiswa, stats }) {
 
     Berikut adalah data performa siswa bernama "${namaSiswa}" dalam permainan edukatif matematika bisnis (program linear / pertidaksamaan linear):
 
-    - Total Run: ${stats.totalRun} putaran (Setiap putaran mengelola 2 produk UMKM)
+    - Total Run: ${stats.totalRun} putaran (Setiap putaran mengelola 2 produk khas Riau)
     - Total Produk Dikelola: ${stats.produkSelesai} produk
     - Total XP: ${stats.totalXp}
     - Total Pendapatan: Rp${stats.totalPendapatan.toLocaleString('id-ID')}
