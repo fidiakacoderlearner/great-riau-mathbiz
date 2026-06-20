@@ -12,6 +12,7 @@ import BertemuPembeli     from './pages/eksplorasi/BertemuPembeli'
 import DashboardGuruPage from './pages/guru/DashboardGuruPage'
 import DetailKelasPage   from './pages/guru/DetailKelasPage'
 import DetailSiswaPage   from './pages/guru/DetailSiswaPage'
+import ManajemenSoalPage from './pages/guru/ManajemenSoalPage'
 
 // ── Guard untuk halaman yang butuh login ─────────────────────────
 function RequireAuth({ children, allowedRole }) {
@@ -86,6 +87,9 @@ function App() {
         } />
         <Route path="/dashboard-guru/kelas/:kelasId/siswa/:siswaId" element={
           <RequireAuth allowedRole="guru"><DetailSiswaPage /></RequireAuth>
+        } />
+        <Route path="/dashboard-guru/soal" element={
+          <RequireAuth allowedRole="guru"><ManajemenSoalPage /></RequireAuth>
         } />
 
         {/* Fallback */}

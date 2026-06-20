@@ -18,6 +18,13 @@ export function getModalPerBatch(produk) {
   return produk.hargaJual * produk.isiPerBatch
 }
 
+// Cek apakah budget cukup untuk minimal 1 batch salah satu dari dua produk
+export function budgetCukupUntukBatch(produkA, produkB, budget) {
+  const mA = getModalPerBatch(produkA)
+  const mB = getModalPerBatch(produkB)
+  return budget >= Math.min(mA, mB)
+}
+
 export function getHargaKaryawan(level, runKe, karyawanList = []) {
   const k = karyawanList.find(k => k.level === level)
   if (!k) return 0
@@ -27,6 +34,19 @@ export function getHargaKaryawan(level, runKe, karyawanList = []) {
 export function hitungOptimal(produkA, produkB, budget = 600000, waktuTotal = WAKTU_DASAR) {
   const mA = getModalPerBatch(produkA)
   const mB = getModalPerBatch(produkB)
+
+  // Guard: jika budget tidak cukup untuk 1 batch pun, kembalikan nilai minimal yang valid
+  if (budget < Math.min(mA, mB)) {
+    return {
+      x: 0, y: 0,
+      revenue:       0,
+      modalBatchA:   mA,
+      modalBatchB:   mB,
+      waktuTerpakai: 0,
+      modalTerpakai: 0,
+      budgetTidakCukup: true,  // flag untuk komponen menampilkan peringatan
+    }
+  }
 
   let bestRevenue = 0
   let bestX = 0, bestY = 0
@@ -53,6 +73,7 @@ export function hitungOptimal(produkA, produkB, budget = 600000, waktuTotal = WA
     modalBatchB:   mB,
     waktuTerpakai: bestX * produkA.waktuPerBatch + bestY * produkB.waktuPerBatch,
     modalTerpakai: bestX * mA + bestY * mB,
+    budgetTidakCukup: false,
   }
 }
 
