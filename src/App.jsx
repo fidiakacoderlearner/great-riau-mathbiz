@@ -14,6 +14,7 @@ import DashboardGuruPage  from './pages/guru/DashboardGuruPage'
 import DetailKelasPage    from './pages/guru/DetailKelasPage'
 import DetailSiswaPage    from './pages/guru/DetailSiswaPage'
 import ManajemenSoalPage  from './pages/guru/ManajemenSoalPage'
+import PacuJalurGuruPage  from './pages/guru/PacuJalurGuruPage'
 
 // ── Guard untuk halaman yang butuh login ─────────────────────────
 function RequireAuth({ children, allowedRole }) {
@@ -99,6 +100,10 @@ function App() {
         {/* Route Diperbarui: Manajemen Soal per Kelas */}
         <Route path="/dashboard-guru/kelas/:kelasId/soal" element={
           <RequireAuth allowedRole="guru"><ManajemenSoalPage /></RequireAuth>
+        } />
+
+        <Route path="/dashboard-guru/pacu-jalur" element={
+          <RequireAuth allowedRole="guru"><PacuJalurGuruPage /></RequireAuth>
         } />
 
         {/* Fallback */}
