@@ -305,9 +305,9 @@ export async function fetchSiswaByKelas(kelasId) {
 }
 
 // ── Progress Siswa ────────────────────────────────────────────────
-
-export async function fetchProgressSiswa(siswaId) {
-  const { data, error } = await supabase
+export async function fetchProgressSiswa(siswaId, kelasId = null) {
+  // 1. Buat kerangka query-nya menggunakan variabel 'let'
+  let query = supabase
     .from('sesi_bermain')
     .select(`
       *,
@@ -319,7 +319,14 @@ export async function fetchProgressSiswa(siswaId) {
       )
     `)
     .eq('siswa_id', siswaId)
-    .order('started_at', { ascending: true })
+
+  // 2. Tambahkan filter kelas (Pelindung Ghost Data)
+  if (kelasId) {
+    query = query.eq('kelas_id', kelasId)
+  }
+
+  // 3. Eksekusi query final dan simpan ke 'data' dan 'error'
+  const { data, error } = await query.order('started_at', { ascending: true })
 
   if (error) throw error
   return data
@@ -330,7 +337,7 @@ export async function fetchStatistikKelas(kelasId) {
 
   const progressList = await Promise.all(
     siswaList.map(async siswa => {
-      const sesiList = await fetchProgressSiswa(siswa.id)
+      const sesiList = await fetchProgressSiswa(siswa.id, kelasId)
       const semuaRun = sesiList.flatMap(s => s.run ?? [])
       const semuaJawaban = semuaRun.flatMap(r => r.jawaban_soal ?? [])
 
@@ -459,6 +466,7 @@ export async function fetchGameProgress(siswaId, permainanId = null) {
 
 // ── Keluarkan Siswa dari Kelas ────────────────────────────────────
 export async function keluarkanSiswa(kelasId, siswaId) {
+  // Hanya putus akses kelasnya saja, jangan hapus data permainannya (untuk antisipasi salah kick)
   const { error } = await supabase
     .from('kelas_siswa')
     .delete()

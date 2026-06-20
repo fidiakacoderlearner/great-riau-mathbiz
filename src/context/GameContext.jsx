@@ -387,7 +387,7 @@ export function GameProvider({ children }) {
       user, authLoading, logout,
 
       // Data
-      produkList, karyawanList, dataLoading,
+      produkList, dataLoading,
 
       // XP
       xp, totalXp, tambahXP,

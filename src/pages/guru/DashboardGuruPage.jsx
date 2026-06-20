@@ -107,6 +107,18 @@ function DashboardGuruPage() {
             }}>
             📝 Manajemen Soal
           </button>
+          
+          {/* ── TOMBOL BARU: HOST PACU JALUR ── */}
+          <button
+            onClick={() => navigate('/dashboard-guru/pacu-jalur')}
+            style={{
+              padding: '0.4rem 1rem', borderRadius: '0.65rem',
+              backgroundColor: 'rgba(255,255,255,0.15)', color: 'white', // Warna biru khas Pacu Jalur
+              fontWeight: 700, fontSize: '0.8rem', border: 'none', cursor: 'pointer',
+              whiteSpace: 'nowrap'
+            }}>
+            🚣‍♂️ Host Pacu Jalur
+          </button>
         </div>
       </div>
       {/* AKHIR KELOMPOK HEADER STICKY */}

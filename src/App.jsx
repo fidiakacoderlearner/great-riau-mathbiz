@@ -4,15 +4,17 @@ import { useGame } from './context/GameContext'
 import LoginPage          from './pages/LoginPage'
 import GameHubPage        from './pages/GameHubPage'
 import ReviewPage         from './pages/ReviewPage'
+import PacuJalurPage      from './pages/PacuJalurPage'
 
 import RancanganUsahaPage from './pages/eksplorasi/RancanganUsahaPage'
 import DapurProduksiPage  from './pages/eksplorasi/DapurProduksiPage'
 import BertemuPembeli     from './pages/eksplorasi/BertemuPembeli'
 
-import DashboardGuruPage from './pages/guru/DashboardGuruPage'
-import DetailKelasPage   from './pages/guru/DetailKelasPage'
-import DetailSiswaPage   from './pages/guru/DetailSiswaPage'
-import ManajemenSoalPage from './pages/guru/ManajemenSoalPage'
+import DashboardGuruPage  from './pages/guru/DashboardGuruPage'
+import DetailKelasPage    from './pages/guru/DetailKelasPage'
+import DetailSiswaPage    from './pages/guru/DetailSiswaPage'
+import ManajemenSoalPage  from './pages/guru/ManajemenSoalPage'
+import PacuJalurGuruPage  from './pages/guru/PacuJalurGuruPage'
 
 // ── Guard untuk halaman yang butuh login ─────────────────────────
 function RequireAuth({ children, allowedRole }) {
@@ -64,10 +66,16 @@ function App() {
         {/* Root — smart route */}
         <Route path="/" element={<RootRoute />} />
 
-        {/* Siswa */}
+        {/* ── SISWA ── */}
         <Route path="/review" element={
           <RequireAuth allowedRole="siswa"><ReviewPage /></RequireAuth>
         } />
+        
+        {/* Route Pacu Jalur */}
+        <Route path="/pacu-jalur" element={
+          <RequireAuth allowedRole="siswa"><PacuJalurPage /></RequireAuth>
+        } />
+
         <Route path="/eksplorasi/rancangan-usaha" element={
           <RequireAuth allowedRole="siswa"><RancanganUsahaPage /></RequireAuth>
         } />
@@ -78,7 +86,7 @@ function App() {
           <RequireAuth allowedRole="siswa"><BertemuPembeli /></RequireAuth>
         } />
 
-        {/* Guru */}
+        {/* ── GURU ── */}
         <Route path="/dashboard-guru" element={
           <RequireAuth allowedRole="guru"><DashboardGuruPage /></RequireAuth>
         } />
@@ -88,8 +96,14 @@ function App() {
         <Route path="/dashboard-guru/kelas/:kelasId/siswa/:siswaId" element={
           <RequireAuth allowedRole="guru"><DetailSiswaPage /></RequireAuth>
         } />
-        <Route path="/dashboard-guru/soal" element={
+        
+        {/* Route Diperbarui: Manajemen Soal per Kelas */}
+        <Route path="/dashboard-guru/kelas/:kelasId/soal" element={
           <RequireAuth allowedRole="guru"><ManajemenSoalPage /></RequireAuth>
+        } />
+
+        <Route path="/dashboard-guru/pacu-jalur" element={
+          <RequireAuth allowedRole="guru"><PacuJalurGuruPage /></RequireAuth>
         } />
 
         {/* Fallback */}

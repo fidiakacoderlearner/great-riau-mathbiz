@@ -46,6 +46,10 @@ function DetailKelasPage() {
   const [loading,      setLoading]      = useState(true)
   const [sortBy,       setSortBy]       = useState('nama')
 
+  // ── STATE UNTUK POP-UP MODAL KICK ──
+  const [modalKick, setModalKick] = useState({ isOpen: false, siswaId: null, namaSiswa: '' })
+  const [isKicking, setIsKicking] = useState(false)
+
   useEffect(() => { loadData() }, [id])
 
   async function loadData() {
@@ -60,15 +64,23 @@ function DetailKelasPage() {
     }
   }
 
-  async function handleKeluarkanSiswa(siswaId, namaSiswa) {
-    if (!window.confirm(
-      `Keluarkan "${namaSiswa}" dari kelas ini?\nData progress siswa tidak akan terhapus.`
-    )) return
+  // Fungsi untuk memunculkan Pop-up
+  function handleKeluarkanSiswaClick(siswaId, namaSiswa) {
+    setModalKick({ isOpen: true, siswaId, namaSiswa })
+  }
+
+  // Fungsi eksekusi saat tombol "Ya, Keluarkan" ditekan di dalam Pop-up
+  async function executeKeluarkanSiswa() {
+    if (!modalKick.siswaId) return
+    setIsKicking(true)
     try {
-      await keluarkanSiswa(id, siswaId)
-      loadData()
+      await keluarkanSiswa(id, modalKick.siswaId)
+      await loadData() // Refresh data kelas setelah berhasil kick
+      setModalKick({ isOpen: false, siswaId: null, namaSiswa: '' }) // Tutup modal
     } catch (err) {
       alert('Gagal mengeluarkan siswa: ' + err.message)
+    } finally {
+      setIsKicking(false)
     }
   }
 
@@ -220,7 +232,7 @@ function DetailKelasPage() {
                     { label: 'Produk',     nilai: `${produkSelesai}/10`                       },
                     { label: 'Run',        nilai: `${totalRun}x`                              },
                     { label: 'Hint',       nilai: `${persenHint}%`                            },
-                    { label: 'Jumlah Bermain', nilai: `${jumlahPermainan}x`                            },
+                    { label: 'Jumlah Bermain', nilai: `${jumlahPermainan}x`                   },
                   ].map((item, i) => (
                     <div key={i} style={{ textAlign: 'center', minWidth: '50px' }}>
                       <p style={{ fontSize: '0.65rem', color: '#aaa',
@@ -246,7 +258,7 @@ function DetailKelasPage() {
                     Detail →
                   </button>
                   <button
-                    onClick={() => handleKeluarkanSiswa(siswa.id, siswa.nama_lengkap)}
+                    onClick={() => handleKeluarkanSiswaClick(siswa.id, siswa.nama_lengkap)}
                     style={{
                       padding: '0.4rem 0.75rem', borderRadius: '0.6rem',
                       backgroundColor: '#FADBD8', color: '#C0392B',
@@ -278,6 +290,54 @@ function DetailKelasPage() {
           </div>
         )}
       </div>
+
+      {/* ── CUSTOM POP-UP KICK MODAL ── */}
+      {modalKick.isOpen && (
+        <div style={{
+          position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)',
+          zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: '1.5rem'
+        }}>
+          <div style={{
+            backgroundColor: 'white', borderRadius: '1.5rem', padding: '2rem',
+            width: '100%', maxWidth: '400px', textAlign: 'center',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
+          }}>
+            <div style={{ fontSize: '3.5rem', marginBottom: '0.5rem' }}>⚠️</div>
+            <h3 style={{ fontWeight: 900, fontSize: '1.25rem', color: '#C0392B', marginBottom: '0.5rem' }}>
+              Peringatan Fatal!
+            </h3>
+            <p style={{ fontSize: '0.875rem', color: '#555', fontWeight: 600, lineHeight: 1.6, marginBottom: '1.5rem' }}>
+              Keluarkan <b>"{modalKick.namaSiswa}"</b> dari kelas ini?<br/><br/>
+              Aksesnya akan dicabut sementara. Jika ia masuk ke kelas yang BERBEDA, barulah datanya akan <b style={{color: '#C0392B'}}>DIRESET PERMANEN</b>.
+            </p>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button 
+                onClick={() => setModalKick({ isOpen: false, siswaId: null, namaSiswa: '' })} 
+                disabled={isKicking}
+                style={{
+                  flex: 1, padding: '0.85rem', borderRadius: '0.75rem',
+                  backgroundColor: '#eee', color: '#666', fontWeight: 700, fontSize: '0.9rem',
+                  border: 'none', cursor: 'pointer'
+                }}>
+                Batal
+              </button>
+              <button 
+                onClick={executeKeluarkanSiswa} 
+                disabled={isKicking}
+                style={{
+                  flex: 1, padding: '0.85rem', borderRadius: '0.75rem',
+                  backgroundColor: '#C0392B', color: 'white', fontWeight: 700, fontSize: '0.9rem',
+                  border: 'none', cursor: 'pointer',
+                  opacity: isKicking ? 0.7 : 1
+                }}>
+                {isKicking ? 'Mengeluarkan...' : 'Ya, Keluarkan'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }
